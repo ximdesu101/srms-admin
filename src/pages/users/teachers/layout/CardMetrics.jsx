@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import {
     Card,
     CardHeader,
@@ -10,36 +11,33 @@ import {
     ClockAlert,
     CircleX
 } from "lucide-react";
+import { GetTeacherMetrics } from "@/services/teacherService";
 
-const cardMetrics = [
+const METRIC_CONFIG = [
     {
-        id: 1,
+        key: "total",
         title: "Total Accounts",
-        value: 4,
         icon: UsersRound,
         bgColor: "bg-blue-100",
         iconColor: "text-blue-600",
     },
     {
-        id: 2,
+        key: "active",
         title: "Active Accounts",
-        value: 3,
         icon: UserRoundCheck,
         bgColor: "bg-green-100",
         iconColor: "text-green-600",
     },
     {
-        id: 3,
-        title: "Deactived Accounts",
-        value: 1,
+        key: "inactive",
+        title: "Disabled Accounts",
         icon: CircleX,
         bgColor: "bg-red-100",
         iconColor: "text-red-600",
     },
     {
-        id: 4,
+        key: "pending",
         title: "Pending Activation",
-        value: 0,
         icon: ClockAlert,
         bgColor: "bg-yellow-100",
         iconColor: "text-yellow-600",
@@ -47,24 +45,31 @@ const cardMetrics = [
 ];
 
 const CardMetrics = () => {
+    const { data, isLoading } = useQuery({
+        queryKey: ["teacher-metrics"],
+        queryFn: GetTeacherMetrics,
+    });
+
     return (
         <div className="grid grid-cols-4 auto-rows-min gap-4">
-            {cardMetrics.map((data) => {
-                const Icon = data.icon;
+            {METRIC_CONFIG.map((config) => {
+                const Icon = config.icon;
+                const value = isLoading ? "—" : (data?.[config.key] ?? 0);
+
                 return (
-                    <Card key={data.id} className="flex-row gap-0 p-4">
-                        <div className={`flex h-15 w-15 items-center justify-center rounded-full ${data.bgColor}`}>
-                            {Icon && <Icon className={`h-8 w-8 ${data.iconColor}`} />}
+                    <Card key={config.key} className="flex-row gap-0 p-4">
+                        <div className={`flex h-15 w-15 items-center justify-center rounded-full ${config.bgColor}`}>
+                            {Icon && <Icon className={`h-8 w-8 ${config.iconColor}`} />}
                         </div>
                         <div className="flex-1">
                             <CardHeader className="pb-0">
                                 <CardTitle className="text-sm">
-                                    {data.title}
+                                    {config.title}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <h1 className="text-3xl font-bold tracking-tight">
-                                    {data.value}
+                                    {value}
                                 </h1>
                             </CardContent>
                         </div>
@@ -72,7 +77,7 @@ const CardMetrics = () => {
                 );
             })}
         </div>
-    )
-}
+    );
+};
 
-export default CardMetrics
+export default CardMetrics;

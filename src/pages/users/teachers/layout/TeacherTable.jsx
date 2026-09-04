@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -22,72 +23,31 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
-import { Button } from "@/components/ui/button";
 import AddAccountForm from "./AddAccountForm";
 import EditAccountForm from "./EditAccountForm";
 import DeleteAccount from "./DeleteAccount";
 import CardMetrics from "./CardMetrics";
-
-const initialTeachers = [
-    {
-        id: "2026-001",
-        firstName: "Tom Ribert",
-        middleName: "Dela Cruz",
-        lastName: "Calinao",
-        suffix: "Jr.",
-        username: "tomcalinao",
-        position: "Teacher I",
-        status: "Active",
-        dateAdded: "03/29/26",
-    },
-    {
-        id: "2026-002",
-        firstName: "Maria Clara",
-        middleName: "Santos",
-        lastName: "Mendoza",
-        suffix: "",
-        username: "mcmendoza",
-        position: "Master Teacher I",
-        status: "Active",
-        dateAdded: "04/05/26",
-    },
-    {
-        id: "2026-003",
-        firstName: "Juan",
-        middleName: "Reyes",
-        lastName: "Dalisay",
-        suffix: "III",
-        username: "juandalisay",
-        position: "Principal I",
-        status: "Active",
-        dateAdded: "04/12/26",
-    },
-    {
-        id: "2026-004",
-        firstName: "Angela Grace",
-        middleName: "Villanueva",
-        lastName: "Bautista",
-        suffix: "",
-        username: "agbautista",
-        position: "Teacher III",
-        status: "Inactive",
-        dateAdded: "05/01/26",
-    },
-];
+import { GetTeachers } from "@/services/teacherService";
 
 const TeacherAccount = () => {
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const queryClient = useQueryClient();
 
-    const filteredTeachers = initialTeachers.filter((teacher) => {
-        const searchValue = search.toLowerCase();
-
-        return (
-            teacher.firstName.toLowerCase().includes(searchValue) ||
-            teacher.lastName.toLowerCase().includes(searchValue) ||
-            teacher.username.toLowerCase().includes(searchValue) ||
-            teacher.email.toLowerCase().includes(searchValue)
-        );
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["teachers", { page, search }],
+        queryFn: () => GetTeachers({ page, search }),
+        placeholderData: keepPreviousData,
     });
+
+    const teachers = data?.data ?? [];
+    const lastPage = data?.last_page ?? 1;
+    const currentPage = data?.current_page ?? 1;
+
+    const handleSearchChange = (value) => {
+        setSearch(value);
+        setPage(1); // reset to page 1 whenever the search term changes
+    };
 
     return (
         <div className="grid gap-4">
@@ -100,7 +60,7 @@ const TeacherAccount = () => {
                             id="search"
                             placeholder="Search teacher's account"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                         />
 
                         <InputGroupAddon>
@@ -111,7 +71,7 @@ const TeacherAccount = () => {
                             <InputGroupAddon align="inline-end">
                                 <button
                                     type="button"
-                                    onClick={() => setSearch("")}
+                                    onClick={() => handleSearchChange("")}
                                     className="text-muted-foreground hover:text-foreground"
                                 >
                                     <X />
@@ -119,7 +79,10 @@ const TeacherAccount = () => {
                             </InputGroupAddon>
                         )}
                     </InputGroup>
-                    <AddAccountForm />
+                    <AddAccountForm onCreated={() => {
+                            setPage(1);
+                            queryClient.invalidateQueries({ queryKey: ["teacher-metrics"] });
+                        }} />
                 </div>
 
                 {/* Table Section */}
@@ -141,29 +104,41 @@ const TeacherAccount = () => {
                         </TableHeader>
 
                         <TableBody>
-                            {filteredTeachers.length > 0 ? (
-                                filteredTeachers.map((teacher) => (
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={10} className="text-center text-muted-foreground">
+                                        Loading teacher accounts...
+                                    </TableCell>
+                                </TableRow>
+                            ) : isError ? (
+                                <TableRow>
+                                    <TableCell colSpan={10} className="text-center text-destructive">
+                                        Failed to load teacher accounts.
+                                    </TableCell>
+                                </TableRow>
+                            ) : teachers.length > 0 ? (
+                                teachers.map((teacher) => (
                                     <TableRow key={teacher.id}>
-                                        <TableCell>{teacher.id}</TableCell>
-                                        <TableCell>{teacher.firstName}</TableCell>
-                                        <TableCell>{teacher.middleName}</TableCell>
-                                        <TableCell>{teacher.lastName}</TableCell>
+                                        <TableCell>{teacher.teacher_id}</TableCell>
+                                        <TableCell>{teacher.first_name}</TableCell>
+                                        <TableCell>{teacher.middle_name}</TableCell>
+                                        <TableCell>{teacher.last_name}</TableCell>
                                         <TableCell>{teacher.suffix}</TableCell>
                                         <TableCell>{teacher.username}</TableCell>
-                                        <TableCell>{teacher.position}</TableCell>                                        <TableCell>{teacher.status}</TableCell>
-                                        <TableCell>{teacher.dateAdded}</TableCell>
+                                        <TableCell>{teacher.position}</TableCell>
+                                        <TableCell>{teacher.status}</TableCell>
+                                        <TableCell>
+                                            {new Date(teacher.created_at).toLocaleDateString()}
+                                        </TableCell>
                                         <TableCell className="text-right">
-                                            <EditAccountForm />
-                                            <DeleteAccount />
+                                            <EditAccountForm teacher={teacher} />
+                                            <DeleteAccount teacher={teacher} />
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={7}
-                                        className="text-center text-muted-foreground"
-                                    >
+                                    <TableCell colSpan={10} className="text-center text-muted-foreground">
                                         No teacher accounts found.
                                     </TableCell>
                                 </TableRow>
@@ -176,7 +151,7 @@ const TeacherAccount = () => {
                     {/* Pagination */}
                     <div className="flex items-center justify-end px-2 py-2">
                         <div className="flex-1 text-sm text-muted-foreground">
-                            Page 1 of 3
+                            Page {currentPage} of {lastPage}
                         </div>
 
                         <div>
@@ -184,30 +159,28 @@ const TeacherAccount = () => {
                                 <PaginationContent>
                                     <PaginationItem>
                                         <PaginationPrevious
-                                            className="pointer-events-none opacity-50"
+                                            className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            onClick={() => currentPage > 1 && setPage(currentPage - 1)}
                                         />
                                     </PaginationItem>
 
-                                    <PaginationItem>
-                                        <PaginationLink isActive>
-                                            1
-                                        </PaginationLink>
-                                    </PaginationItem>
+                                    {Array.from({ length: lastPage }, (_, i) => i + 1).map((p) => (
+                                        <PaginationItem key={p}>
+                                            <PaginationLink
+                                                isActive={p === currentPage}
+                                                className="cursor-pointer"
+                                                onClick={() => setPage(p)}
+                                            >
+                                                {p}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
 
                                     <PaginationItem>
-                                        <PaginationLink>
-                                            2
-                                        </PaginationLink>
-                                    </PaginationItem>
-
-                                    <PaginationItem>
-                                        <PaginationLink>
-                                            3
-                                        </PaginationLink>
-                                    </PaginationItem>
-
-                                    <PaginationItem>
-                                        <PaginationNext className="cursor-pointer" />
+                                        <PaginationNext
+                                            className={currentPage >= lastPage ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                            onClick={() => currentPage < lastPage && setPage(currentPage + 1)}
+                                        />
                                     </PaginationItem>
                                 </PaginationContent>
                             </Pagination>
