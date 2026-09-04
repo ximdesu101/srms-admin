@@ -48,7 +48,7 @@ const cardMetrics = [
 
 const CardMetrics = () => {
     return (
-        <div className="grid grid-cols-4 auto-rows-min gap-4">
+        <div className="grid grid-cols-2 auto-rows-min gap-4">
             {cardMetrics.map((data) => {
                 const Icon = data.icon;
                 return (
