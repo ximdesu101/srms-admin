@@ -336,7 +336,7 @@ const EditAccountForm = ({ teacher }) => {
                             {([canSubmit]) => (
                                 <Button
                                     type="submit"
-                                    className="bg-[#4386c2] hover:bg-[#4386c2]"
+                                    variant="default"
                                     disabled={!canSubmit || updateMutation.isPending}
                                 >
                                     {updateMutation.isPending ? (

@@ -111,14 +111,13 @@ const AddAccountForm = ({ onCreated }) => {
     return (
         <Dialog open={open} onOpenChange={(val) => { if (!val) handleClose(); else setOpen(true); }}>
             <DialogTrigger asChild>
-                <Button variant="default" className="bg-[#3e963f] hover:bg-[#3e963f]">
+                <Button variant="default">
                     <Plus />
                     Add Teacher
                 </Button>
             </DialogTrigger>
 
             <DialogContent>
-                {/* ── SUCCESS VIEW ── */}
                 {createdData ? (
                     <>
                         <DialogHeader>
@@ -172,7 +171,7 @@ const AddAccountForm = ({ onCreated }) => {
                         <DialogFooter>
                             <Button
                                 type="button"
-                                className="w-full bg-[#3e963f] hover:bg-[#3e963f]"
+                                variant="default"
                                 onClick={handleClose}
                             >
                                 Done
@@ -410,7 +409,7 @@ const AddAccountForm = ({ onCreated }) => {
                                     {([canSubmit]) => (
                                         <Button
                                             type="submit"
-                                            className="bg-[#3e963f] hover:bg-[#3e963f]"
+                                            variant="default"
                                             disabled={!canSubmit || createTeacherMutation.isPending}
                                         >
                                             {createTeacherMutation.isPending ? (

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import {
     Table,
@@ -23,6 +22,12 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import { 
+    Search, 
+    SearchAlert,
+    Loader,
+    DatabaseX
+} from "lucide-react";
 import AddAccountForm from "./AddAccountForm";
 import EditAccountForm from "./EditAccountForm";
 import DeleteAccount from "./DeleteAccount";
@@ -46,7 +51,7 @@ const TeacherAccount = () => {
 
     const handleSearchChange = (value) => {
         setSearch(value);
-        setPage(1); // reset to page 1 whenever the search term changes
+        setPage(1);
     };
 
     return (
@@ -62,22 +67,7 @@ const TeacherAccount = () => {
                             value={search}
                             onChange={(e) => handleSearchChange(e.target.value)}
                         />
-
-                        <InputGroupAddon>
-                            <Search />
-                        </InputGroupAddon>
-
-                        {search && (
-                            <InputGroupAddon align="inline-end">
-                                <button
-                                    type="button"
-                                    onClick={() => handleSearchChange("")}
-                                    className="text-muted-foreground hover:text-foreground"
-                                >
-                                    <X />
-                                </button>
-                            </InputGroupAddon>
-                        )}
+                        <InputGroupAddon><Search /></InputGroupAddon>
                     </InputGroup>
                     <AddAccountForm onCreated={() => {
                             setPage(1);
@@ -107,12 +97,14 @@ const TeacherAccount = () => {
                             {isLoading ? (
                                 <TableRow>
                                     <TableCell colSpan={10} className="text-center text-muted-foreground">
+                                        <Loader className="mx-auto animate-spin"/>
                                         Loading teacher accounts...
                                     </TableCell>
                                 </TableRow>
                             ) : isError ? (
                                 <TableRow>
                                     <TableCell colSpan={10} className="text-center text-destructive">
+                                        <DatabaseX className="mx-auto"/>
                                         Failed to load teacher accounts.
                                     </TableCell>
                                 </TableRow>
@@ -139,6 +131,7 @@ const TeacherAccount = () => {
                             ) : (
                                 <TableRow>
                                     <TableCell colSpan={10} className="text-center text-muted-foreground">
+                                        <SearchAlert className="mx-auto"/>
                                         No teacher accounts found.
                                     </TableCell>
                                 </TableRow>
