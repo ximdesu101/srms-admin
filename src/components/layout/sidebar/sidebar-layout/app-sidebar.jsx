@@ -56,7 +56,7 @@ const navMain = [
         ],
     },
     { title: "Reports", url: "#", icon: ChartNoAxesCombined },
-    { title: "Audit Logs", url: "/activity-logs", icon: Logs },
+    { title: "Audit Logs", url: "/audit-logs", icon: Logs },
 ];
 
 export function AppSidebar({ ...props }) {

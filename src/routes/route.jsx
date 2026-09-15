@@ -19,7 +19,7 @@ import SF10 from "@/pages/school-forms/layouts/sf10/SF10";
 import DocumentRequest from "@/pages/request/DocumentRequest";
 import SubmissionRequests from "@/pages/submission/submission-request/SubmissionRequest";
 import SubmissionApprovals from "@/pages/submission/submission-approval/SubmissionApproval";
-import ActivityLogs from "@/pages/logs/ActivityLogs";
+import AuditLogs from "@/pages/audits/AuditLogs";
 import AuthProtector from "./guard/AuthProtector";
 
 export const router = createBrowserRouter([
@@ -56,7 +56,7 @@ export const router = createBrowserRouter([
                     { path: "document-requests",   element: <DocumentRequest />,     handle: { crumb: () => "Document Requests" } },
                     { path: "submission-requests", element: <SubmissionRequests />,  handle: { crumb: () => "Submission Requests" } },
                     { path: "submission-approvals",element: <SubmissionApprovals />, handle: { crumb: () => "Submission Approvals" } },
-                    { path: "activity-logs",       element: <ActivityLogs />,        handle: { crumb: () => "Activity Logs" } },
+                    { path: "audit-logs",       element: <AuditLogs />,        handle: { crumb: () => "Audit Logs" } },
                 ],
             },
         ],
