@@ -1,4 +1,4 @@
-import { useMatches, Link } from "react-router-dom";
+import { useLocation, useMatches, Link } from "react-router-dom";
 import { Fragment } from "react";
 import {
     Breadcrumb, BreadcrumbItem, BreadcrumbLink,
@@ -7,12 +7,16 @@ import {
 
 function AppBreadcrumbs() {
     const matches = useMatches();
-    const crumbs = matches
+    const location = useLocation();
+    const routeCrumbs = matches
         .filter((match) => Boolean(match.handle?.crumb))
         .map((match) => ({
             label: match.handle.crumb(match.params, match.data),
             href: match.pathname,
         }));
+    const crumbs = location.pathname.startsWith("/school-forms/")
+        ? [{ label: "School Forms", href: "/school-forms" }, ...routeCrumbs]
+        : routeCrumbs;
 
     return (
         <Breadcrumb>
