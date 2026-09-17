@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/empty"
 import { Download, Eye, FileText } from "lucide-react";
 
-const Preview = () => {
+const PreviewSF1 = () => {
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -67,4 +67,4 @@ const Preview = () => {
     )
 }
 
-export default Preview
+export default PreviewSF1

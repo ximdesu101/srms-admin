@@ -41,7 +41,7 @@ import {
     GitBranch, 
     Upload 
 } from "lucide-react";
-const UploadVersion = () => {
+const UploadVersionSF1 = () => {
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -133,4 +133,4 @@ const UploadVersion = () => {
     )
 }
 
-export default UploadVersion
+export default UploadVersionSF1

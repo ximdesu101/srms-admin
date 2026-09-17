@@ -18,9 +18,9 @@ import {
     Download,
     GitBranch
 } from "lucide-react";
-import Preview from "./Preview";
+import Preview from "./PreviewSF1";
 
-const Templates = () => {
+const TemplatesSF1 = () => {
     return (
         <Card>
             <CardHeader>
@@ -72,4 +72,4 @@ const Templates = () => {
     );
 };
 
-export default Templates;
+export default TemplatesSF1;

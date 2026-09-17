@@ -40,7 +40,7 @@ import {
     Pencil,
     Archive
 } from "lucide-react";
-import UploadVersion from "./UploadVersionSF1";
+import UploadVersion from "./UploadVersionSF2";
 
 const initialFiles = [
     {
@@ -75,7 +75,7 @@ const initialFiles = [
     },
 ];
 
-const TableSF1 = () => {
+const TableSF2 = () => {
     const [search, setSearch] = useState("");
 
     const filteredFiles = initialFiles.filter((file) => {
@@ -235,4 +235,4 @@ const TableSF1 = () => {
     );
 };
 
-export default TableSF1;
+export default TableSF2;

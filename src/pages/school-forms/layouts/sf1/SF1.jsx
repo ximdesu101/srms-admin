@@ -1,5 +1,5 @@
 import CardMetricsSF1 from "./layout/CardMetricsSF1";
-import Templates from "./layout/Templates";
+import Templates from "./layout/TemplatesSF1";
 import TableSF1 from "./layout/TableSF1";
 const SF1 = () => {
     return (
