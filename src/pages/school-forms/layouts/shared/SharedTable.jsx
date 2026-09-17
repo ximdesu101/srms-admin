@@ -27,58 +27,38 @@ import {
     DropdownMenuContent,
     DropdownMenuGroup,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
     Search,
     Ellipsis,
-    Upload,
     Eye,
     Download,
     Pencil,
-    Archive
+    Archive,
 } from "lucide-react";
-import UploadVersion from "./UploadVersionSF1";
+import SharedUploadVersion from "./SharedUploadVersion";
 
-const initialFiles = [
-    {
-        id: 1,
-        filename: "SF1_School_Register.xlsx",
-        schoolYear: "2025-2026",
-        version: "v3",
-        uploadedDate: "03/29/2026",
-        fileType: "Excel",
-        fileSize: "245 KB",
-        status: "Current",
-    },
-    {
-        id: 2,
-        filename: "SF1_School_Register.xlsx",
-        schoolYear: "2024-2025",
-        version: "v2",
-        uploadedDate: "06/15/2025",
-        fileType: "Excel",
-        fileSize: "231 KB",
-        status: "Archived",
-    },
-    {
-        id: 3,
-        filename: "SF1_School_Register.xlsx",
-        schoolYear: "2023-2024",
-        version: "v1",
-        uploadedDate: "05/20/2024",
-        fileType: "Excel",
-        fileSize: "218 KB",
-        status: "Archived",
-    },
-];
-
-const TableSF1 = () => {
+/**
+ * @param {{
+ *   formCode: string,
+ *   formName?: string,
+ *   files: Array<{
+ *     id: number,
+ *     filename: string,
+ *     schoolYear: string,
+ *     version: string,
+ *     uploadedDate: string,
+ *     fileType: string,
+ *     fileSize: string,
+ *     status: string
+ *   }>
+ * }} props
+ */
+const SharedTable = ({ formCode, formName, files }) => {
     const [search, setSearch] = useState("");
 
-    const filteredFiles = initialFiles.filter((file) => {
+    const filteredFiles = files.filter((file) => {
         const searchValue = search.toLowerCase();
 
         return (
@@ -102,9 +82,11 @@ const TableSF1 = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
-                        <InputGroupAddon><Search /></InputGroupAddon>
+                        <InputGroupAddon>
+                            <Search />
+                        </InputGroupAddon>
                     </InputGroup>
-                    <UploadVersion/>
+                    <SharedUploadVersion formCode={formCode} formName={formName} />
                 </div>
 
                 {/* Table Section */}
@@ -137,10 +119,11 @@ const TableSF1 = () => {
                                         <TableCell>{file.fileSize}</TableCell>
                                         <TableCell>
                                             <span
-                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${file.status === "Current"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-600"
-                                                    }`}
+                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                                    file.status === "Current"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-gray-100 text-gray-600"
+                                                }`}
                                             >
                                                 {file.status}
                                             </span>
@@ -149,28 +132,28 @@ const TableSF1 = () => {
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost">
-                                                        <Ellipsis/>
+                                                        <Ellipsis />
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent>
                                                     <DropdownMenuGroup>
                                                         <DropdownMenuItem>
-                                                            <Eye/>
+                                                            <Eye />
                                                             Preview
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
-                                                            <Download/>
+                                                            <Download />
                                                             Download
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem>
-                                                            <Pencil/>
+                                                            <Pencil />
                                                             Rename
                                                         </DropdownMenuItem>
                                                     </DropdownMenuGroup>
-                                                    <Separator/>
+                                                    <Separator />
                                                     <DropdownMenuGroup>
                                                         <DropdownMenuItem variant="destructive">
-                                                            <Archive/>
+                                                            <Archive />
                                                             Archive
                                                         </DropdownMenuItem>
                                                     </DropdownMenuGroup>
@@ -203,24 +186,16 @@ const TableSF1 = () => {
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
-                                        <PaginationPrevious
-                                            className="pointer-events-none opacity-50"
-                                        />
+                                        <PaginationPrevious className="pointer-events-none opacity-50" />
                                     </PaginationItem>
                                     <PaginationItem>
-                                        <PaginationLink isActive>
-                                            1
-                                        </PaginationLink>
+                                        <PaginationLink isActive>1</PaginationLink>
                                     </PaginationItem>
                                     <PaginationItem>
-                                        <PaginationLink>
-                                            2
-                                        </PaginationLink>
+                                        <PaginationLink>2</PaginationLink>
                                     </PaginationItem>
                                     <PaginationItem>
-                                        <PaginationLink>
-                                            3
-                                        </PaginationLink>
+                                        <PaginationLink>3</PaginationLink>
                                     </PaginationItem>
                                     <PaginationItem>
                                         <PaginationNext className="cursor-pointer" />
@@ -235,4 +210,4 @@ const TableSF1 = () => {
     );
 };
 
-export default TableSF1;
+export default SharedTable;

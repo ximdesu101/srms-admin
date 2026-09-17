@@ -1,16 +1,59 @@
-import CardMetricsSF1 from "./layout/CardMetricsSF1";
-import Templates from "./layout/TemplatesSF1";
-import TableSF1 from "./layout/TableSF1";
-const SF1 = () => {
-    return (
-        <div className="grid gap-4">
-            <div className="grid grid-cols-2 gap-4">
-                <Templates/>
-                <CardMetricsSF1/>
-            </div>
-            <TableSF1/>
-        </div>
-    )
-}
+import SharedSFLayout from "../shared/SharedSFLayout";
 
-export default SF1
+const SF1_DATA = {
+    formCode: "SF1",
+    formName: "School Register",
+    schoolYear: "2026-2027",
+    fileType: "Excel Spreadsheet",
+    description: "Official SF1 template for the current school year.",
+    currentVersion: "v3",
+    lastUpdated: "September 5, 2026",
+    versions: [
+        { value: "1", label: "Version 1" },
+        { value: "2", label: "Version 2" },
+        { value: "3", label: "Version 3" },
+    ],
+    metrics: [
+        { key: "totalFiles", title: "Total Files", value: 12 },
+        { key: "version", title: "Current Version", value: "v3" },
+        { key: "lastUpdated", title: "Last Updated", value: "Sep 5, 2026" },
+    ],
+    files: [
+        {
+            id: 1,
+            filename: "SF1_School_Register.xlsx",
+            schoolYear: "2025-2026",
+            version: "v3",
+            uploadedDate: "03/29/2026",
+            fileType: "Excel",
+            fileSize: "245 KB",
+            status: "Current",
+        },
+        {
+            id: 2,
+            filename: "SF1_School_Register.xlsx",
+            schoolYear: "2024-2025",
+            version: "v2",
+            uploadedDate: "06/15/2025",
+            fileType: "Excel",
+            fileSize: "231 KB",
+            status: "Archived",
+        },
+        {
+            id: 3,
+            filename: "SF1_School_Register.xlsx",
+            schoolYear: "2023-2024",
+            version: "v1",
+            uploadedDate: "05/20/2024",
+            fileType: "Excel",
+            fileSize: "218 KB",
+            status: "Archived",
+        },
+    ],
+};
+
+const SF1 = () => {
+    return <SharedSFLayout {...SF1_DATA} />;
+};
+
+export default SF1;

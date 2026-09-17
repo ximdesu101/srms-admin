@@ -11,15 +11,33 @@ import {
 } from "@/components/ui/sheet";
 import {
     Empty,
-    EmptyContent,
     EmptyDescription,
     EmptyHeader,
     EmptyMedia,
     EmptyTitle,
-} from "@/components/ui/empty"
+} from "@/components/ui/empty";
 import { Download, Eye, FileText } from "lucide-react";
 
-const PreviewSF1 = () => {
+/**
+ * @param {{
+ *   formCode: string,
+ *   formName: string,
+ *   schoolYear?: string,
+ *   lastUpdated?: string,
+ *   previewDescription?: string
+ * }} props
+ */
+const SharedPreview = ({
+    formCode,
+    formName,
+    schoolYear = "2026-2027",
+    lastUpdated = "September 2026",
+    previewDescription,
+}) => {
+    const description =
+        previewDescription ||
+        `The official ${formCode} ${formName} template preview will be displayed here.`;
+
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -31,9 +49,11 @@ const PreviewSF1 = () => {
 
             <SheetContent className="sm:max-w-xl">
                 <SheetHeader>
-                    <SheetTitle>SF1 - School Register Templates</SheetTitle>
+                    <SheetTitle>
+                        {formCode} - {formName}
+                    </SheetTitle>
                     <SheetDescription>
-                        School Year 2026-2027 • Updated September 2026
+                        School Year {schoolYear} • Updated {lastUpdated}
                     </SheetDescription>
                 </SheetHeader>
                 <Empty>
@@ -41,20 +61,13 @@ const PreviewSF1 = () => {
                         <EmptyMedia variant="icon">
                             <FileText />
                         </EmptyMedia>
-                        <EmptyTitle>
-                            Document Preview
-                        </EmptyTitle>
-                        <EmptyDescription>
-                            The official SF1 School Register template
-                            preview will be displayed here.
-                        </EmptyDescription>
+                        <EmptyTitle>Document Preview</EmptyTitle>
+                        <EmptyDescription>{description}</EmptyDescription>
                     </EmptyHeader>
                 </Empty>
                 <SheetFooter className="flex gap-2">
                     <SheetClose asChild>
-                        <Button variant="outline">
-                            Close Preview
-                        </Button>
+                        <Button variant="outline">Close Preview</Button>
                     </SheetClose>
 
                     <Button variant="default">
@@ -64,7 +77,7 @@ const PreviewSF1 = () => {
                 </SheetFooter>
             </SheetContent>
         </Sheet>
-    )
-}
+    );
+};
 
-export default PreviewSF1
+export default SharedPreview;

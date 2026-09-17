@@ -9,41 +9,30 @@ import {
     Files,
     GitBranch,
     CalendarDays,
-    CircleCheck,
 } from "lucide-react";
 
-const METRIC_CONFIG = [
-    {
-        key: "totalFiles",
-        title: "Total Files",
-        value: 12,
-        icon: Files,
-        bgColor: "bg-blue-100",
-        iconColor: "text-blue-600",
-    },
-    {
-        key: "version",
-        title: "Current Version",
-        value: "v3",
-        icon: GitBranch,
-        bgColor: "bg-green-100",
-        iconColor: "text-green-600",
-    },
-    {
-        key: "lastUpdated",
-        title: "Last Updated",
-        value: "Sep 5, 2026",
-        icon: CalendarDays,
-        bgColor: "bg-orange-100",
-        iconColor: "text-orange-600",
-    },
-];
+const DEFAULT_ICONS = {
+    totalFiles: Files,
+    version: GitBranch,
+    lastUpdated: CalendarDays,
+};
 
-const CardMetricsSF1 = () => {
+const DEFAULT_STYLES = {
+    totalFiles: { bgColor: "bg-blue-100", iconColor: "text-blue-600" },
+    version: { bgColor: "bg-green-100", iconColor: "text-green-600" },
+    lastUpdated: { bgColor: "bg-orange-100", iconColor: "text-orange-600" },
+};
+
+/**
+ * @param {{ metrics: Array<{ key: string, title: string, value: string|number, icon?: any, bgColor?: string, iconColor?: string }> }} props
+ */
+const SharedCardMetrics = ({ metrics }) => {
     return (
         <div className="grid grid-cols-2 gap-4">
-            {METRIC_CONFIG.map((config, index) => {
-                const Icon = config.icon;
+            {metrics.map((config, index) => {
+                const Icon = config.icon || DEFAULT_ICONS[config.key] || Files;
+                const bgColor = config.bgColor || DEFAULT_STYLES[config.key]?.bgColor || "bg-blue-100";
+                const iconColor = config.iconColor || DEFAULT_STYLES[config.key]?.iconColor || "text-blue-600";
 
                 return (
                     <Card
@@ -53,11 +42,9 @@ const CardMetricsSF1 = () => {
                         }`}
                     >
                         <div
-                            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${config.bgColor}`}
+                            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full ${bgColor}`}
                         >
-                            <Icon
-                                className={`h-7 w-7 ${config.iconColor}`}
-                            />
+                            <Icon className={`h-7 w-7 ${iconColor}`} />
                         </div>
 
                         <div className="min-w-0 flex-1">
@@ -80,4 +67,4 @@ const CardMetricsSF1 = () => {
     );
 };
 
-export default CardMetricsSF1;
+export default SharedCardMetrics;

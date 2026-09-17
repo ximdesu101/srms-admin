@@ -8,13 +8,13 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogFooter,
-    DialogClose
+    DialogClose,
 } from "@/components/ui/dialog";
 import {
     Field,
     FieldGroup,
     FieldLabel,
-} from "@/components/ui/field"
+} from "@/components/ui/field";
 import {
     InputGroup,
     InputGroupAddon,
@@ -37,11 +37,20 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { 
-    GitBranch, 
-    Upload 
-} from "lucide-react";
-const UploadVersionSF1 = () => {
+import { GitBranch, Upload } from "lucide-react";
+
+/**
+ * @param {{
+ *   formCode: string,
+ *   formName?: string
+ * }} props
+ */
+const SharedUploadVersion = ({ formCode, formName }) => {
+    const title = formName ? `Upload ${formCode} Form` : `Upload ${formCode} Form`;
+    const description = formName
+        ? `Add a new copy of the ${formCode} ${formName} to the system.`
+        : `Add a new copy of the ${formCode} school form to the system.`;
+
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -52,12 +61,10 @@ const UploadVersionSF1 = () => {
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Upload SF1 Form</DialogTitle>
-                    <DialogDescription>
-                        Add a new copy of the SF1 school form to the system.
-                    </DialogDescription>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
                 </DialogHeader>
-                <Separator/>
+                <Separator />
                 <FieldGroup>
                     <FieldGroup className="grid grid-cols-2 gap-4">
                         <Field>
@@ -83,9 +90,11 @@ const UploadVersionSF1 = () => {
                                     id="version"
                                     type="text"
                                     placeholder="v3"
-                                    require
+                                    required
                                 />
-                                <InputGroupAddon><GitBranch /></InputGroupAddon>
+                                <InputGroupAddon>
+                                    <GitBranch />
+                                </InputGroupAddon>
                             </InputGroup>
                         </Field>
                     </FieldGroup>
@@ -93,44 +102,37 @@ const UploadVersionSF1 = () => {
                         <Empty className="border border-dashed">
                             <EmptyHeader>
                                 <EmptyMedia variant="icon">
-                                    <Upload/>
+                                    <Upload />
                                 </EmptyMedia>
-                                <EmptyTitle>Upload SF1 File</EmptyTitle>
+                                <EmptyTitle>Upload {formCode} File</EmptyTitle>
                                 <EmptyDescription>
                                     Drag and drop or browse to select a file.
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
-                                <Button>
-                                    Browse File
-                                </Button>
-                            </EmptyContent>        
+                                <Button>Browse File</Button>
+                            </EmptyContent>
                         </Empty>
                     </Field>
                     <Field>
                         <FieldLabel htmlFor="note">Description / Notes</FieldLabel>
                         <InputGroup>
-                            <InputGroupTextarea
-                                id="note"
-                                type="text"
-                            />
+                            <InputGroupTextarea id="note" type="text" />
                         </InputGroup>
                     </Field>
                 </FieldGroup>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">
-                            Close
-                        </Button>
+                        <Button variant="outline">Close</Button>
                     </DialogClose>
                     <Button variant="default">
-                        <Upload/>
+                        <Upload />
                         Upload
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    )
-}
+    );
+};
 
-export default UploadVersionSF1
+export default SharedUploadVersion;
