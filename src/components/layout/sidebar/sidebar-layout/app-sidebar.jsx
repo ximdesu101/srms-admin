@@ -44,7 +44,7 @@ const navMain = [
         ],
 
     },
-    { title: "School Form", url: "/school-forms", icon: FileText },
+    { title: "Forms", url: "/forms", icon: FileText },
     { title: "Document Requests", url: "/document-requests", icon: FilePlusCorner },
     {
         title: "Document Submission",

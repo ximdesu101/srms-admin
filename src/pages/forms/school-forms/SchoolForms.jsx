@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, File, GitGraph, Search, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
     Card,
     CardContent,
@@ -8,12 +7,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-} from "@/components/ui/input-group";
-import { Button } from "@/components/ui/button";
+import { 
+    CalendarDays, 
+    File, 
+    GitGraph,
+    BadgeCheck
+} from "lucide-react";
 
 import campus from "@/assets/sf-icons/campus.png";
 import attendance from "@/assets/sf-icons/attendance.png";
@@ -204,101 +203,32 @@ function SchoolFormCard({ form, onOpen }) {
     );
 }
 
-function EmptyState({ search, onClear }) {
-    return (
-        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-dashed text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                <Search className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <h3 className="text-sm font-semibold">No school forms found</h3>
-
-            <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-                No school forms match{" "}
-                <span className="font-medium text-foreground">"{search}"</span>
-            </p>
-
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={onClear}
-                className="mt-3"
-            >
-                Clear search
-            </Button>
-        </div>
-    );
-}
-
 const SchoolForms = () => {
     const navigate = useNavigate();
-    const [search, setSearch] = useState("");
-
-    const filteredForms = useMemo(() => {
-        const query = search.trim().toLowerCase();
-
-        if (!query) return SCHOOL_FORMS;
-
-        return SCHOOL_FORMS.filter(
-            ({ code, name, description }) =>
-                code.toLowerCase().includes(query) ||
-                name.toLowerCase().includes(query) ||
-                description.toLowerCase().includes(query)
-        );
-    }, [search]);
 
     const openForm = (path) => navigate(`/school-forms/${path}`);
-    const clearSearch = () => setSearch("");
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between gap-4">
-                <div className="w-full max-w-md">
-                    <InputGroup>
-                        <InputGroupAddon>
-                            <Search className="h-4 w-4 text-muted-foreground" />
-                        </InputGroupAddon>
-
-                        <InputGroupInput
-                            type="search"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder="Search school forms..."
-                            aria-label="Search school forms"
-                        />
-
-                        {search && (
-                            <InputGroupAddon align="inline-end">
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon-sm"
-                                    onClick={clearSearch}
-                                    className="h-7 w-7"
-                                    aria-label="Clear search"
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </InputGroupAddon>
-                        )}
-                    </InputGroup>
+        <div className="grid gap-4">
+            <CardHeader>
+                <div className="flex gap-2">
+                    <CardTitle className="text-3xl font-semibold">
+                        School Forms
+                    </CardTitle>
+                    <Badge variant="outline" className="my-auto border-green-200 bg-green-50 text-green-700">
+                        <BadgeCheck/>
+                        Official
+                    </Badge>
                 </div>
-
-                <p className="hidden text-sm text-muted-foreground sm:block">
-                    {filteredForms.length} {filteredForms.length === 1 ? "form" : "forms"}
-                </p>
+                <CardDescription>
+                    Official DepEd Form of Tagnao Elementary School
+                </CardDescription>
+            </CardHeader>
+            <div className="grid grid-cols-3 gap-4">
+                {SCHOOL_FORMS.map((form) => (
+                    <SchoolFormCard key={form.code} form={form} onOpen={openForm} />
+                ))}
             </div>
-
-            {filteredForms.length > 0 ? (
-                <div className="grid grid-cols-3 gap-4">
-                    {filteredForms.map((form) => (
-                        <SchoolFormCard key={form.code} form={form} onOpen={openForm} />
-                    ))}
-                </div>
-            ) : (
-                <EmptyState search={search} onClear={clearSearch} />
-            )}
         </div>
     );
 };
