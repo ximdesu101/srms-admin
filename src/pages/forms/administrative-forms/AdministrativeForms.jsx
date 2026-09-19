@@ -9,7 +9,9 @@ import {
 } from "@/components/ui/card";
 const AdministrativeForms = () => {
     return (
-        <div>AdministrativeForms</div>
+        <CardHeader>
+            <CardTitle>Administrative Forms</CardTitle>
+        </CardHeader>
     )
 }
 
