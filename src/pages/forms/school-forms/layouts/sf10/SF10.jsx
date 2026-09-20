@@ -6,16 +6,9 @@ const SF10_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF10 template for cumulative academic record retained permanently by the school.",
-    currentVersion: "v6",
+    templateFileSize: "167 KB",
     lastUpdated: "May 27, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-        { value: "4", label: "Version 4" },
-        { value: "5", label: "Version 5" },
-        { value: "6", label: "Version 6" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 10 },
         { key: "version", title: "Current Version", value: "v6" },

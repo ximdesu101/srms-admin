@@ -6,12 +6,9 @@ const SF7_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF7 template for report of all teaching and non-teaching personnel, including position, status, and assignments.",
-    currentVersion: "v2",
+    templateFileSize: "76 KB",
     lastUpdated: "July 18, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 5 },
         { key: "version", title: "Current Version", value: "v2" },

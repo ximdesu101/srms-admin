@@ -3,21 +3,17 @@ import SharedSFLayout from "../shared/SharedSFLayout";
 const SF1_DATA = {
     formCode: "SF1",
     formName: "School Register",
-    schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
-    description: "Official SF1 template for the current school year.",
-    currentVersion: "v3",
+    description: "template for recording learner enrollment and basic school register information for SY 2026-2027.",
+    templateFileSize: "124 KB",
     lastUpdated: "September 5, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 12 },
         { key: "version", title: "Current Version", value: "v3" },
         { key: "lastUpdated", title: "Last Updated", value: "Sep 5, 2026" },
     ],
+
     files: [
         {
             id: 1,

@@ -6,15 +6,9 @@ const SF5_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF5 template for end-of-year report on learner promotions, retention, and dropouts.",
-    currentVersion: "v5",
+    templateFileSize: "203 KB",
     lastUpdated: "July 30, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-        { value: "4", label: "Version 4" },
-        { value: "5", label: "Version 5" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 14 },
         { key: "version", title: "Current Version", value: "v5" },

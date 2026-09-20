@@ -5,13 +5,10 @@ const SF2_DATA = {
     formName: "Daily Attendance Report",
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
-    description: "Official SF2 template for monthly daily learner attendance per section.",
-    currentVersion: "v2",
+    description: "School Form 2 template for monthly daily learner attendance per section.",
+    templateFileSize: "98 KB",
     lastUpdated: "August 28, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 12 },
         { key: "version", title: "Current Version", value: "v2" },

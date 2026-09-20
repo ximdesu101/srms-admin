@@ -26,6 +26,7 @@ const SharedSFLayout = ({
     fileType,
     description,
     currentVersion,
+    templateFileSize,
     lastUpdated,
     versions,
     metrics,
@@ -40,6 +41,7 @@ const SharedSFLayout = ({
                     schoolYear={schoolYear}
                     fileType={fileType}
                     description={description}
+                    templateFileSize={templateFileSize}
                     currentVersion={currentVersion}
                     lastUpdated={lastUpdated}
                     versions={versions}

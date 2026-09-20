@@ -5,6 +5,7 @@ import {
     TabsTrigger 
 } from "@/components/ui/tabs";
 import SchoolForms from "./school-forms/SchoolForms";
+import AdministrativeForms from "./administrative-forms/AdministrativeForms";
 
 const Forms = () => {
     return (
@@ -26,6 +27,9 @@ const Forms = () => {
 
             <TabsContent value="school-forms">
                 <SchoolForms />
+            </TabsContent>
+            <TabsContent value="admin-forms">
+                <AdministrativeForms />
             </TabsContent>
         </Tabs>
     )

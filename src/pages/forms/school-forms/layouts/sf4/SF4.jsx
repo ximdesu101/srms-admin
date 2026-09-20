@@ -6,12 +6,9 @@ const SF4_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF4 template for recording learner enrollment changes throughout the school year.",
-    currentVersion: "v2",
+    templateFileSize: "87 KB",
     lastUpdated: "August 15, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 9 },
         { key: "version", title: "Current Version", value: "v2" },

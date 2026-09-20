@@ -6,13 +6,9 @@ const SF6_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF6 template for consolidated school-wide summary of promotion outcomes.",
-    currentVersion: "v3",
+    templateFileSize: "145 KB",
     lastUpdated: "July 24, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 7 },
         { key: "version", title: "Current Version", value: "v3" },

@@ -6,14 +6,9 @@ const SF8_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF8 template for basic health and nutritional data for each enrolled learner.",
-    currentVersion: "v4",
+    templateFileSize: "189 KB",
     lastUpdated: "June 29, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-        { value: "4", label: "Version 4" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 11 },
         { key: "version", title: "Current Version", value: "v4" },

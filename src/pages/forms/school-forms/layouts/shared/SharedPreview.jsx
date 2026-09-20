@@ -47,7 +47,7 @@ const SharedPreview = ({
                 </Button>
             </SheetTrigger>
 
-            <SheetContent className="sm:max-w-xl">
+            <SheetContent side="bottom">
                 <SheetHeader>
                     <SheetTitle>
                         {formCode} - {formName}

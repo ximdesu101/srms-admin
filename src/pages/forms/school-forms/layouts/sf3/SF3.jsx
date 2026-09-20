@@ -6,14 +6,9 @@ const SF3_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF3 template for tracking textbooks and instructional materials issued to learners.",
-    currentVersion: "v4",
+    templateFileSize: "156 KB",
     lastUpdated: "August 21, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-        { value: "4", label: "Version 4" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 6 },
         { key: "version", title: "Current Version", value: "v4" },

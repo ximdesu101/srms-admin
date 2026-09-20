@@ -6,13 +6,9 @@ const SF9_DATA = {
     schoolYear: "2026-2027",
     fileType: "Excel Spreadsheet",
     description: "Official SF9 template for report card showing quarterly grades and remarks.",
-    currentVersion: "v3",
+        templateFileSize: "112 KB",
     lastUpdated: "June 12, 2026",
-    versions: [
-        { value: "1", label: "Version 1" },
-        { value: "2", label: "Version 2" },
-        { value: "3", label: "Version 3" },
-    ],
+
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 18 },
         { key: "version", title: "Current Version", value: "v3" },
