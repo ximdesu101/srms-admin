@@ -1,5 +1,4 @@
-import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { format } from "date-fns";
@@ -56,10 +55,22 @@ import {
     GetActiveTeachers,
 } from "@/services/submissionRequestService";
 
+// --- Small debounce hook -----------------------------------------------------
+function useDebouncedValue(value, delay = 300) {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const t = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(t);
+    }, [value, delay]);
+    return debounced;
+}
+
 const AddRequestForm = ({ onCreated }) => {
     const [open, setOpen] = useState(false);
     const [teacherSearch, setTeacherSearch] = useState("");
     const queryClient = useQueryClient();
+
+    const debouncedTeacherSearch = useDebouncedValue(teacherSearch, 300);
 
     const {
         data: teachersData,
@@ -67,10 +78,12 @@ const AddRequestForm = ({ onCreated }) => {
         isError: teachersError,
         isFetching: teachersFetching,
     } = useQuery({
-        queryKey: ["active-teachers", teacherSearch],
-        queryFn: () => GetActiveTeachers({ search: teacherSearch }),
+        queryKey: ["active-teachers", debouncedTeacherSearch],
+        queryFn: () => GetActiveTeachers({ search: debouncedTeacherSearch }),
         enabled: open,
         staleTime: 30_000,
+        // Keep the previous list visible while a new search is fetching
+        placeholderData: (prev) => prev,
     });
 
     const teachers = teachersData?.data ?? [];
@@ -96,29 +109,32 @@ const AddRequestForm = ({ onCreated }) => {
                     const fieldName = fieldMap[key] || key;
                     form.setFieldMeta(fieldName, (meta) => ({
                         ...meta,
-                        errorMap: { onSubmit: Array.isArray(messages) ? messages[0] : messages },
+                        errorMap: {
+                            onSubmit: Array.isArray(messages) ? messages[0] : messages,
+                        },
                     }));
                 });
                 toast.error(err.response?.data?.message || "Validation failed.");
                 return;
             }
             toast.error(
-                err.response?.data?.message || "Failed to send submission request. Please try again."
+                err.response?.data?.message ||
+                    "Failed to send submission request. Please try again."
             );
         },
     });
 
     const form = useForm({
         defaultValues: {
-            teacherId: null,
+            teacher: null,
             teacherLabel: "",
             documentCode: "",
             dueDate: undefined,
             notes: "",
         },
         onSubmit: async ({ value }) => {
-            if (!value.teacherId) {
-                form.setFieldMeta("teacherId", (meta) => ({
+            if (!value.teacher) {
+                form.setFieldMeta("teacher", (meta) => ({
                     ...meta,
                     errorMap: { onSubmit: "Please select a teacher." },
                 }));
@@ -138,9 +154,8 @@ const AddRequestForm = ({ onCreated }) => {
                 }));
                 return;
             }
-
             createMutation.mutate({
-                teacherId: value.teacherId,
+                teacherId: value.teacher.id,
                 documentCode: value.documentCode,
                 dueDate: format(value.dueDate, "yyyy-MM-dd"),
                 notes: value.notes || null,
@@ -172,7 +187,7 @@ const AddRequestForm = ({ onCreated }) => {
                     Create Request
                 </Button>
             </DialogTrigger>
-            <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Request Form</DialogTitle>
                     <DialogDescription>
@@ -188,91 +203,112 @@ const AddRequestForm = ({ onCreated }) => {
                     }}
                 >
                     <FieldGroup>
-                        <form.Field name="teacherId">
-                            {(field) => (
-                                <Field>
-                                    <FieldLabel htmlFor="teacher">
-                                        Teacher Account
-                                    </FieldLabel>
-                                    <Combobox
-                                        items={teachers}
-                                        value={
-                                            teachers.find((t) => t.id === field.state.value) ?? null
-                                        }
-                                        onValueChange={(item) => {
-                                            field.handleChange(item?.id ?? null);
-                                            form.setFieldValue(
-                                                "teacherLabel",
-                                                item ? item.name : ""
-                                            );
-                                        }}
-                                        itemToStringValue={(item) =>
-                                            item ? `${item.name} (${item.teacher_id})` : ""
-                                        }
-                                        onInputValueChange={(val) => setTeacherSearch(val)}
-                                    >
-                                        <ComboboxInput
-                                            id="teacher"
-                                            placeholder={
-                                                teachersLoading
-                                                    ? "Loading teachers..."
-                                                    : "Select teacher account"
+                        <form.Field name="teacher">
+                            {(field) => {
+                                const selectedLabel = field.state.value
+                                    ? `${field.state.value.name} (${field.state.value.teacher_id})`
+                                    : "";
+
+                                // Only show the blocking loader on the very first fetch
+                                const isInitialLoading =
+                                    teachersLoading && teachers.length === 0;
+
+                                return (
+                                    <Field>
+                                        <FieldLabel htmlFor="teacher">
+                                            Teacher Account
+                                        </FieldLabel>
+                                        <Combobox
+                                            items={teachers}
+                                            value={field.state.value}
+                                            onValueChange={(item) =>
+                                                field.handleChange(item ?? null)
                                             }
-                                            disabled={isSubmitting || teachersLoading}
-                                        />
-                                        <ComboboxContent>
-                                            {teachersError ? (
+                                            itemToStringValue={(item) =>
+                                                item
+                                                    ? `${item.name} (${item.teacher_id})`
+                                                    : ""
+                                            }
+                                            itemToStringLabel={(item) =>
+                                                item
+                                                    ? `${item.name} (${item.teacher_id})`
+                                                    : ""
+                                            }
+                                            onInputValueChange={(val) => {
+                                                // Only update the search term if the
+                                                // input text isn't just the selected label
+                                                // being re-applied by the parent render.
+                                                if (val !== selectedLabel) {
+                                                    setTeacherSearch(val);
+                                                }
+                                            }}
+                                        >
+                                            <ComboboxInput
+                                                id="teacher"
+                                                placeholder={
+                                                    isInitialLoading
+                                                        ? "Loading teachers..."
+                                                        : "Select teacher account"
+                                                }
+                                                // Do NOT disable on loading — that's
+                                                // what was killing the caret mid-type.
+                                                disabled={isSubmitting}
+                                            />
+                                            <ComboboxContent>
+                                                {/* List is ALWAYS mounted so items
+                                                    remain clickable during refetches */}
+                                                <ComboboxList>
+                                                    {(account) => (
+                                                        <ComboboxItem
+                                                            key={account.id}
+                                                            value={account}
+                                                        >
+                                                            <div className="flex flex-col">
+                                                                <span>{account.name}</span>
+                                                                <span className="text-muted-foreground text-xs">
+                                                                    {account.teacher_id}
+                                                                    {account.username
+                                                                        ? ` • ${account.username}`
+                                                                        : ""}
+                                                                    {account.position
+                                                                        ? ` • ${account.position}`
+                                                                        : ""}
+                                                                    {account.class_advisory
+                                                                        ? ` • ${account.class_advisory}`
+                                                                        : ""}
+                                                                </span>
+                                                            </div>
+                                                        </ComboboxItem>
+                                                    )}
+                                                </ComboboxList>
+
+                                                {/* Non-blocking status shown below the list */}
+                                                {teachersFetching &&
+                                                    !isInitialLoading && (
+                                                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                                                            Searching...
+                                                        </div>
+                                                    )}
+
                                                 <ComboboxEmpty>
-                                                    Unable to load registered teachers. Please try again.
+                                                    {teachersError
+                                                        ? "Unable to load registered teachers. Please try again."
+                                                        : isInitialLoading
+                                                        ? "Loading teachers..."
+                                                        : teacherSearch
+                                                        ? "No teacher matches your search."
+                                                        : "No registered active teachers found."}
                                                 </ComboboxEmpty>
-                                            ) : teachersLoading || teachersFetching ? (
-                                                <ComboboxEmpty>
-                                                    Loading teachers...
-                                                </ComboboxEmpty>
-                                            ) : teachers.length === 0 ? (
-                                                <ComboboxEmpty>
-                                                    No registered active teachers found.
-                                                </ComboboxEmpty>
-                                            ) : (
-                                                <>
-                                                    <ComboboxEmpty>
-                                                        No teacher matches your search.
-                                                    </ComboboxEmpty>
-                                                    <ComboboxList>
-                                                        {(account) => (
-                                                            <ComboboxItem
-                                                                key={account.id}
-                                                                value={account}
-                                                            >
-                                                                <div className="flex flex-col">
-                                                                    <span>{account.name}</span>
-                                                                    <span className="text-muted-foreground text-xs">
-                                                                        {account.teacher_id}
-                                                                        {account.username
-                                                                            ? ` • ${account.username}`
-                                                                            : ""}
-                                                                        {account.position
-                                                                            ? ` • ${account.position}`
-                                                                            : ""}
-                                                                        {account.class_advisory
-                                                                            ? ` • ${account.class_advisory}`
-                                                                            : ""}
-                                                                    </span>
-                                                                </div>
-                                                            </ComboboxItem>
-                                                        )}
-                                                    </ComboboxList>
-                                                </>
-                                            )}
-                                        </ComboboxContent>
-                                    </Combobox>
-                                    {field.state.meta.errors?.[0] && (
-                                        <p className="text-sm text-destructive mt-1">
-                                            {field.state.meta.errors[0]}
-                                        </p>
-                                    )}
-                                </Field>
-                            )}
+                                            </ComboboxContent>
+                                        </Combobox>
+                                        {field.state.meta.errors?.[0] && (
+                                            <p className="text-sm text-destructive mt-1">
+                                                {field.state.meta.errors[0]}
+                                            </p>
+                                        )}
+                                    </Field>
+                                );
+                            }}
                         </form.Field>
 
                         <form.Field name="documentCode">
