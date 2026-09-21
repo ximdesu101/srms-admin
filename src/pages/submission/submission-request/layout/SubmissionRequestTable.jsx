@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { Search, Eye } from "lucide-react";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { Search, Eye, Loader, DatabaseX, SearchAlert, Ban } from "lucide-react";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import {
     Table,
@@ -29,90 +31,101 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import AddRequestForm from "./AddRequestForm";
+import {
+    GetSubmissionRequests,
+    CancelSubmissionRequest,
+} from "@/services/submissionRequestService";
 
-const initialSubmissionRequests = [
-    {
-        id: "SR-2026-001",
-        requestedTo: "Juan Dela Cruz",
-        document: "Personal Data Sheet",
-        requestDate: "09/02/26",
-        dueDate: "09/05/26",
-        status: "Pending",
-    },
-    {
-        id: "SR-2026-002",
-        requestedTo: "Maria Clara Mendoza",
-        document: "Service Record",
-        requestDate: "09/01/26",
-        dueDate: "09/04/26",
-        status: "Completed",
-    },
-    {
-        id: "SR-2026-003",
-        requestedTo: "Angela Grace Bautista",
-        document: "Daily Time Record",
-        requestDate: "08/30/26",
-        dueDate: "09/01/26",
-        status: "Overdue",
-    },
-    {
-        id: "SR-2026-004",
-        requestedTo: "Juan Dela Cruz",
-        document: "Certificate of Service",
-        requestDate: "08/29/26",
-        dueDate: "09/02/26",
-        status: "Completed",
-    },
-];
+const statusVariant = {
+    Requested: "secondary",
+    Acknowledged: "default",
+    Submitted: "default",
+    Overdue: "destructive",
+    Cancelled: "outline",
+};
+
+const statusClassName = {
+    Requested: "bg-blue-100 text-blue-800 hover:bg-blue-100",
+    Acknowledged: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
+    Submitted: "bg-green-100 text-green-800 hover:bg-green-100",
+    Overdue: "bg-red-100 text-red-800 hover:bg-red-100",
+    Cancelled: "bg-gray-100 text-gray-600 hover:bg-gray-100",
+};
+
+const formatDate = (value) => {
+    if (!value) return "—";
+    try {
+        return new Date(value).toLocaleDateString();
+    } catch {
+        return value;
+    }
+};
 
 const SubmissionRequestTable = () => {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All");
+    const [page, setPage] = useState(1);
+    const queryClient = useQueryClient();
 
-    const filteredSubmissionRequests = useMemo(() => {
-        const keyword = search.toLowerCase().trim();
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["submission-requests", { page, search, status }],
+        queryFn: () => GetSubmissionRequests({ page, search, status }),
+        placeholderData: keepPreviousData,
+    });
 
-        return initialSubmissionRequests.filter((request) => {
-            const matchesSearch =
-                !keyword ||
-                [
-                    request.id,
-                    request.requestedTo,
-                    request.document,
-                    request.status,
-                ].some((value) =>
-                    value.toLowerCase().includes(keyword)
-                );
+    const requests = data?.data ?? [];
+    const lastPage = data?.last_page ?? 1;
+    const currentPage = data?.current_page ?? 1;
 
-            const matchesStatus =
-                status === "All" || request.status === status;
+    const cancelMutation = useMutation({
+        mutationFn: CancelSubmissionRequest,
+        onSuccess: (res) => {
+            toast.success(res?.message || "Submission request cancelled successfully.");
+            queryClient.invalidateQueries({ queryKey: ["submission-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["submission-request-metrics"] });
+        },
+        onError: (err) => {
+            toast.error(
+                err.response?.data?.message || "Failed to cancel submission request."
+            );
+        },
+    });
 
-            return matchesSearch && matchesStatus;
-        });
-    }, [search, status]);
+    const handleSearchChange = (value) => {
+        setSearch(value);
+        setPage(1);
+    };
+
+    const handleStatusChange = (value) => {
+        setStatus(value);
+        setPage(1);
+    };
 
     return (
         <div className="grid gap-2">
             {/* Tabs and Search */}
-            <div className="flex items-center justify-between gap-4">
-                <Tabs value={status} onValueChange={setStatus}>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+                <Tabs value={status} onValueChange={handleStatusChange}>
                     <TabsList>
-                        <TabsTrigger value="All">
-                            All
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Pending">
-                            Pending
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Completed">
-                            Completed
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Overdue">
-                            Overdue
-                        </TabsTrigger>
+                        <TabsTrigger value="All">All</TabsTrigger>
+                        <TabsTrigger value="Requested">Requested</TabsTrigger>
+                        <TabsTrigger value="Acknowledged">Acknowledged</TabsTrigger>
+                        <TabsTrigger value="Submitted">Submitted</TabsTrigger>
+                        <TabsTrigger value="Overdue">Overdue</TabsTrigger>
+                        <TabsTrigger value="Cancelled">Cancelled</TabsTrigger>
                     </TabsList>
                 </Tabs>
                 <div className="flex gap-4">
@@ -123,7 +136,7 @@ const SubmissionRequestTable = () => {
                                 placeholder="Search submission requests"
                                 value={search}
                                 onChange={(event) =>
-                                    setSearch(event.target.value)
+                                    handleSearchChange(event.target.value)
                                 }
                             />
                             <InputGroupAddon>
@@ -131,7 +144,12 @@ const SubmissionRequestTable = () => {
                             </InputGroupAddon>
                         </InputGroup>
                     </Field>
-                    <AddRequestForm />
+                    <AddRequestForm
+                        onCreated={() => {
+                            setPage(1);
+                            setStatus("All");
+                        }}
+                    />
                 </div>
             </div>
 
@@ -140,72 +158,104 @@ const SubmissionRequestTable = () => {
                 <Table>
                     <TableHeader className="bg-[#4386c2]">
                         <TableRow className="hover:bg-[#4386c2]">
-                            <TableHead className="text-white">
-                                Request ID
-                            </TableHead>
-
-                            <TableHead className="text-white">
-                                Requested To
-                            </TableHead>
-
-                            <TableHead className="text-white">
-                                Document
-                            </TableHead>
-
-                            <TableHead className="text-white">
-                                Request Date
-                            </TableHead>
-
-                            <TableHead className="text-white">
-                                Due Date
-                            </TableHead>
-
-                            <TableHead className="text-white">
-                                Status
-                            </TableHead>
-
-                            <TableHead className="text-right text-white">
-                                Actions
-                            </TableHead>
+                            <TableHead className="text-white">Request ID</TableHead>
+                            <TableHead className="text-white">Teacher</TableHead>
+                            <TableHead className="text-white">Requested Documents</TableHead>
+                            <TableHead className="text-white">Requested Date</TableHead>
+                            <TableHead className="text-white">Due Date</TableHead>
+                            <TableHead className="text-white">Status</TableHead>
+                            <TableHead className="text-right text-white">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {filteredSubmissionRequests.length > 0 ? (
-                            filteredSubmissionRequests.map((request) => (
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                                    <Loader className="mx-auto animate-spin" />
+                                    Loading submission requests...
+                                </TableCell>
+                            </TableRow>
+                        ) : isError ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center text-destructive">
+                                    <DatabaseX className="mx-auto" />
+                                    Failed to load submission requests.
+                                </TableCell>
+                            </TableRow>
+                        ) : requests.length > 0 ? (
+                            requests.map((request) => (
                                 <TableRow key={request.id}>
+                                    <TableCell>{request.request_code}</TableCell>
                                     <TableCell>
-                                        {request.id}
+                                        <div className="flex flex-col">
+                                            <span>{request.teacher?.name ?? "—"}</span>
+                                            {request.teacher?.teacher_id && (
+                                                <span className="text-muted-foreground text-xs">
+                                                    {request.teacher.teacher_id}
+                                                </span>
+                                            )}
+                                        </div>
                                     </TableCell>
-
+                                    <TableCell>{request.document_name}</TableCell>
+                                    <TableCell>{formatDate(request.request_date)}</TableCell>
+                                    <TableCell>{formatDate(request.due_date)}</TableCell>
                                     <TableCell>
-                                        {request.requestedTo}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {request.document}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {request.requestDate}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {request.dueDate}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {request.status}
-                                    </TableCell>
-
-                                    <TableCell className="text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title="View Submission Request"
+                                        <Badge
+                                            variant={statusVariant[request.status] || "secondary"}
+                                            className={statusClassName[request.status] || ""}
                                         >
-                                            <Eye />
-                                        </Button>
+                                            {request.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                            {(request.status === "Requested" ||
+                                                request.status === "Acknowledged" ||
+                                                request.status === "Overdue") && (
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            title="Cancel Request"
+                                                            disabled={cancelMutation.isPending}
+                                                        >
+                                                            <Ban className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>
+                                                                Cancel submission request?
+                                                            </AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will mark request{" "}
+                                                                <strong>{request.request_code}</strong> as
+                                                                Cancelled. This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Keep request</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={() =>
+                                                                    cancelMutation.mutate(request.id)
+                                                                }
+                                                            >
+                                                                Cancel request
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                title="View Submission Request"
+                                            >
+                                                <Eye />
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -215,6 +265,7 @@ const SubmissionRequestTable = () => {
                                     colSpan={7}
                                     className="text-center text-muted-foreground"
                                 >
+                                    <SearchAlert className="mx-auto" />
                                     No submission requests found.
                                 </TableCell>
                             </TableRow>
@@ -227,7 +278,7 @@ const SubmissionRequestTable = () => {
                 {/* Pagination */}
                 <div className="flex items-center justify-end px-2 py-2">
                     <div className="flex-1 text-sm text-muted-foreground">
-                        Page 1 of 3
+                        Page {currentPage} of {lastPage}
                     </div>
 
                     <div>
@@ -235,30 +286,40 @@ const SubmissionRequestTable = () => {
                             <PaginationContent>
                                 <PaginationItem>
                                     <PaginationPrevious
-                                        className="pointer-events-none opacity-50"
+                                        className={
+                                            currentPage <= 1
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                        onClick={() =>
+                                            currentPage > 1 && setPage(currentPage - 1)
+                                        }
                                     />
                                 </PaginationItem>
 
-                                <PaginationItem>
-                                    <PaginationLink isActive>
-                                        1
-                                    </PaginationLink>
-                                </PaginationItem>
+                                {Array.from({ length: lastPage }, (_, i) => i + 1).map((p) => (
+                                    <PaginationItem key={p}>
+                                        <PaginationLink
+                                            isActive={p === currentPage}
+                                            className="cursor-pointer"
+                                            onClick={() => setPage(p)}
+                                        >
+                                            {p}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
 
                                 <PaginationItem>
-                                    <PaginationLink>
-                                        2
-                                    </PaginationLink>
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationLink>
-                                        3
-                                    </PaginationLink>
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationNext className="cursor-pointer" />
+                                    <PaginationNext
+                                        className={
+                                            currentPage >= lastPage
+                                                ? "pointer-events-none opacity-50"
+                                                : "cursor-pointer"
+                                        }
+                                        onClick={() =>
+                                            currentPage < lastPage && setPage(currentPage + 1)
+                                        }
+                                    />
                                 </PaginationItem>
                             </PaginationContent>
                         </Pagination>
