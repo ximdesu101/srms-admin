@@ -51,6 +51,7 @@ import {
 } from "@/services/submissionRequestService";
 
 const statusVariant = {
+    Draft: "outline",
     Requested: "secondary",
     Acknowledged: "default",
     Submitted: "default",
@@ -59,6 +60,7 @@ const statusVariant = {
 };
 
 const statusClassName = {
+    Draft: "bg-slate-100 text-slate-700 hover:bg-slate-100",
     Requested: "bg-blue-100 text-blue-800 hover:bg-blue-100",
     Acknowledged: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100",
     Submitted: "bg-green-100 text-green-800 hover:bg-green-100",
@@ -123,6 +125,7 @@ const SubmissionRequestTable = () => {
                 <Tabs value={status} onValueChange={handleStatusChange}>
                     <TabsList>
                         <TabsTrigger value="All">All</TabsTrigger>
+                        <TabsTrigger value="Draft">Draft</TabsTrigger>
                         <TabsTrigger value="Requested">Requested</TabsTrigger>
                         <TabsTrigger value="Acknowledged">Acknowledged</TabsTrigger>
                         <TabsTrigger value="Submitted">Submitted</TabsTrigger>

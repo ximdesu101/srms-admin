@@ -24,6 +24,11 @@ export const CreateSubmissionRequest = async (payload) => {
     return response.data;
 };
 
+export const UpdateSubmissionRequest = async (id, payload) => {
+    const response = await api.put(`/admin/submission-requests/${id}`, payload);
+    return response.data;
+};
+
 export const CancelSubmissionRequest = async (id) => {
     const response = await api.post(`/admin/submission-requests/${id}/cancel`);
     return response.data;
