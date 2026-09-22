@@ -17,7 +17,8 @@ import {
     BellElectric,
     FileText,
     FilePlusCorner,
-    Send 
+    Send,
+    FileBox
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/sidebar/sidebar-layout/nav-main";
@@ -55,6 +56,7 @@ const navMain = [
             { title: "Submission Approval", url: "/submission-approvals" },
         ],
     },
+    { title: "Drafts", url: "/drafts", icon: FileBox },
     { title: "Reports", url: "#", icon: ChartNoAxesCombined },
     { title: "Audit Logs", url: "/audit-logs", icon: Logs },
 ];

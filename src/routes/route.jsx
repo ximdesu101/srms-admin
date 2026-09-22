@@ -20,6 +20,7 @@ import DocumentRequest from "@/pages/request/DocumentRequest";
 import SubmissionRequests from "@/pages/submission/submission-request/SubmissionRequest";
 import AddRequestForm from "@/pages/submission/submission-request/layout/AddRequestForm";
 import SubmissionApprovals from "@/pages/submission/submission-approval/SubmissionApproval";
+import Draft from "@/pages/draft/Draft";
 import AuditLogs from "@/pages/audits/AuditLogs";
 import AuthProtector from "./guard/AuthProtector";
 
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
                         },
                     },
                     { path: "submission-approvals", element: <SubmissionApprovals />,   handle: { crumb: () => "Submission Approvals" } },
+                    { path: "drafts", element: <Draft />,   handle: { crumb: () => "Drafts" } },
                     { path: "audit-logs",           element: <AuditLogs />,             handle: { crumb: () => "Audit Logs" } },
                 ],
             },
