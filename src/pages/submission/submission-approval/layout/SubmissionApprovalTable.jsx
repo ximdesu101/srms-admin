@@ -1,260 +1,305 @@
 import React, { useMemo, useState } from "react";
-import { Search, Eye } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Search, Eye, Loader2, CheckCircle, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+    Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Field } from "@/components/ui/field";
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Tabs,
-    TabsList,
-    TabsTrigger,
-} from "@/components/ui/tabs";
+    Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    GetDocumentSubmissions,
+    GetDocumentSubmission,
+    ApproveDocumentSubmission,
+    RequestRevision,
+} from "@/services/documentSubmissionService";
 
-const initialSubmissions = [
-    {
-        id: "SUB-2026-001",
-        submittedBy: "Juan Dela Cruz",
-        document: "Personal Data Sheet",
-        submittedDate: "09/02/26",
-        status: "Pending Review",
-    },
-    {
-        id: "SUB-2026-002",
-        submittedBy: "Maria Clara Mendoza",
-        document: "SF7",
-        submittedDate: "09/01/26",
-        status: "Accepted",
-    },
-    {
-        id: "SUB-2026-003",
-        submittedBy: "Angela Grace Bautista",
-        document: "Daily Time Record",
-        submittedDate: "08/30/26",
-        status: "Needs Revision",
-    },
-    {
-        id: "SUB-2026-004",
-        submittedBy: "Juan Dela Cruz",
-        document: "Service Record",
-        submittedDate: "08/29/26",
-        status: "Rejected",
-    },
-];
+const statusClass = {
+    Submitted: "bg-blue-100 text-blue-800",
+    "Under Review": "bg-yellow-100 text-yellow-800",
+    "Revision Required": "bg-amber-100 text-amber-800",
+    Resubmitted: "bg-purple-100 text-purple-800",
+    Approved: "bg-green-100 text-green-800",
+};
 
 const SubmissionApprovalTable = () => {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All");
+    const [page, setPage] = useState(1);
+    const [reviewId, setReviewId] = useState(null);
+    const [revisionOpen, setRevisionOpen] = useState(false);
+    const [revisionNote, setRevisionNote] = useState("");
+    const queryClient = useQueryClient();
 
-    const filteredSubmissions = useMemo(() => {
-        const keyword = search.toLowerCase().trim();
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["document-submissions", search, status, page],
+        queryFn: () => GetDocumentSubmissions({ page, search, status }),
+        keepPreviousData: true,
+    });
 
-        return initialSubmissions.filter((submission) => {
-            const matchesSearch =
-                !keyword ||
-                [
-                    submission.id,
-                    submission.submittedBy,
-                    submission.document,
-                    submission.status,
-                ].some((value) =>
-                    value.toLowerCase().includes(keyword)
-                );
+    const { data: detailData, isLoading: detailLoading } = useQuery({
+        queryKey: ["document-submission", reviewId],
+        queryFn: () => GetDocumentSubmission(reviewId),
+        enabled: !!reviewId,
+    });
 
-            const matchesStatus =
-                status === "All" || submission.status === status;
+    const approveMutation = useMutation({
+        mutationFn: ApproveDocumentSubmission,
+        onSuccess: (res) => {
+            toast.success(res.message || "Document approved.");
+            setReviewId(null);
+            queryClient.invalidateQueries({ queryKey: ["document-submissions"] });
+            queryClient.invalidateQueries({ queryKey: ["document-submission-metrics"] });
+        },
+        onError: (err) => toast.error(err.response?.data?.message || "Failed to approve."),
+    });
 
-            return matchesSearch && matchesStatus;
-        });
-    }, [search, status]);
+    const revisionMutation = useMutation({
+        mutationFn: ({ id, note }) => RequestRevision(id, note),
+        onSuccess: (res) => {
+            toast.success(res.message || "Revision requested.");
+            setRevisionOpen(false);
+            setRevisionNote("");
+            setReviewId(null);
+            queryClient.invalidateQueries({ queryKey: ["document-submissions"] });
+            queryClient.invalidateQueries({ queryKey: ["document-submission-metrics"] });
+        },
+        onError: (err) => toast.error(err.response?.data?.message || "Failed to request revision."),
+    });
+
+    const submissions = data?.data ?? [];
+    const lastPage = data?.last_page ?? 1;
+    const detail = detailData?.submission;
+
+    const openReview = (id) => setReviewId(id);
 
     return (
-        <div className="grid gap-2">
-            {/* Tabs and Search */}
-            <div className="flex items-center justify-between gap-4">
-                <Tabs value={status} onValueChange={setStatus}>
-                    <TabsList>
-                        <TabsTrigger value="All">
-                            All
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Pending Review">
-                            Pending Review
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Accepted">
-                            Accepted
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Needs Revision">
-                            Needs Revision
-                        </TabsTrigger>
-
-                        <TabsTrigger value="Rejected">
-                            Rejected
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
-
-                <Field className="w-full max-w-sm">
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <Field className="w-full sm:w-72">
                     <InputGroup>
-                        <InputGroupInput
-                            id="search"
-                            placeholder="Search submissions"
-                            value={search}
-                            onChange={(event) =>
-                                setSearch(event.target.value)
-                            }
-                        />
-
                         <InputGroupAddon>
-                            <Search />
+                            <Search className="h-4 w-4 text-muted-foreground" />
                         </InputGroupAddon>
+                        <InputGroupInput
+                            placeholder="Search submissions..."
+                            value={search}
+                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                        />
                     </InputGroup>
                 </Field>
+                <Tabs value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+                    <TabsList>
+                        <TabsTrigger value="All">All</TabsTrigger>
+                        <TabsTrigger value="Submitted">Submitted</TabsTrigger>
+                        <TabsTrigger value="Resubmitted">Resubmitted</TabsTrigger>
+                        <TabsTrigger value="Revision Required">Revision</TabsTrigger>
+                        <TabsTrigger value="Approved">Approved</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
-            {/* Table */}
-            <div className="overflow-hidden rounded-md border">
-                <Table>
-                    <TableHeader className="bg-[#4386c2]">
-                        <TableRow className="hover:bg-[#4386c2]">
-                            <TableHead className="text-white">
-                                Submission ID
-                            </TableHead>
+            <Separator />
 
-                            <TableHead className="text-white">
-                                Submitted By
-                            </TableHead>
+            {isLoading && (
+                <div className="flex justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            )}
 
-                            <TableHead className="text-white">
-                                Document
-                            </TableHead>
+            {isError && (
+                <p className="text-center text-destructive py-8">Failed to load submissions.</p>
+            )}
 
-                            <TableHead className="text-white">
-                                Submitted Date
-                            </TableHead>
+            {!isLoading && !isError && submissions.length === 0 && (
+                <p className="text-center text-muted-foreground py-12">No pending submissions.</p>
+            )}
 
-                            <TableHead className="text-white">
-                                Status
-                            </TableHead>
-
-                            <TableHead className="text-right text-white">
-                                Actions
-                            </TableHead>
-                        </TableRow>
-                    </TableHeader>
-
-                    <TableBody>
-                        {filteredSubmissions.length > 0 ? (
-                            filteredSubmissions.map((submission) => (
-                                <TableRow key={submission.id}>
+            {!isLoading && submissions.length > 0 && (
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Submission ID</TableHead>
+                                <TableHead>Teacher</TableHead>
+                                <TableHead>Request ID</TableHead>
+                                <TableHead>Document</TableHead>
+                                <TableHead>Submitted Date</TableHead>
+                                <TableHead>Revision</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {submissions.map((s) => (
+                                <TableRow key={s.id}>
+                                    <TableCell className="font-medium">{s.submission_code}</TableCell>
+                                    <TableCell>{s.teacher?.name ?? "—"}</TableCell>
+                                    <TableCell>{s.request_code}</TableCell>
+                                    <TableCell>{s.document_name}</TableCell>
+                                    <TableCell>{s.submitted_date ?? "—"}</TableCell>
+                                    <TableCell>{s.revision_count}</TableCell>
                                     <TableCell>
-                                        {submission.id}
+                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[s.status] || "bg-gray-100"}`}>
+                                            {s.status}
+                                        </span>
                                     </TableCell>
-
-                                    <TableCell>
-                                        {submission.submittedBy}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {submission.document}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {submission.submittedDate}
-                                    </TableCell>
-
-                                    <TableCell>
-                                        {submission.status}
-                                    </TableCell>
-
                                     <TableCell className="text-right">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            title="View Submission"
-                                        >
-                                            <Eye />
+                                        <Button variant="ghost" size="sm" onClick={() => openReview(s.id)}>
+                                            <Eye className="h-4 w-4 mr-1" /> Review
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={6}
-                                    className="text-center text-muted-foreground"
-                                >
-                                    No submissions found.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-
-                <Separator />
-
-                {/* Pagination */}
-                <div className="flex items-center justify-end px-2 py-2">
-                    <div className="flex-1 text-sm text-muted-foreground">
-                        Page 1 of 3
-                    </div>
-
-                    <div>
-                        <Pagination>
-                            <PaginationContent>
-                                <PaginationItem>
-                                    <PaginationPrevious
-                                        className="pointer-events-none opacity-50"
-                                    />
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationLink isActive>
-                                        1
-                                    </PaginationLink>
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationLink>
-                                        2
-                                    </PaginationLink>
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationLink>
-                                        3
-                                    </PaginationLink>
-                                </PaginationItem>
-
-                                <PaginationItem>
-                                    <PaginationNext className="cursor-pointer" />
-                                </PaginationItem>
-                            </PaginationContent>
-                        </Pagination>
-                    </div>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </div>
-            </div>
+            )}
+
+            {lastPage > 1 && (
+                <Pagination>
+                    <PaginationContent>
+                        <PaginationItem>
+                            <PaginationPrevious
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationLink isActive>{page}</PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                            <PaginationNext
+                                onClick={() => setPage((p) => Math.min(lastPage, p + 1))}
+                                className={page >= lastPage ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                        </PaginationItem>
+                    </PaginationContent>
+                </Pagination>
+            )}
+
+            {/* Review Dialog */}
+            <Dialog open={!!reviewId} onOpenChange={(open) => !open && setReviewId(null)}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Review Submission</DialogTitle>
+                        <DialogDescription>
+                            Review the submitted document and approve or request a revision.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {detailLoading && (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                        </div>
+                    )}
+
+                    {detail && (
+                        <div className="space-y-3 text-sm">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div><span className="text-muted-foreground">Submission ID</span><p className="font-medium">{detail.submission_code}</p></div>
+                                <div><span className="text-muted-foreground">Teacher</span><p className="font-medium">{detail.teacher?.name}</p></div>
+                                <div><span className="text-muted-foreground">Request ID</span><p className="font-medium">{detail.request_code}</p></div>
+                                <div><span className="text-muted-foreground">Document</span><p className="font-medium">{detail.document_name}</p></div>
+                                <div><span className="text-muted-foreground">File</span><p className="font-medium">{detail.original_name}</p></div>
+                                <div><span className="text-muted-foreground">Revisions</span><p className="font-medium">{detail.revision_count}</p></div>
+                                <div><span className="text-muted-foreground">Status</span><p className="font-medium">{detail.status}</p></div>
+                                <div><span className="text-muted-foreground">Submitted</span>
+                                    <p className="font-medium">
+                                        {detail.submitted_at ? format(new Date(detail.submitted_at), "MMM d, yyyy h:mm a") : "—"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {detail.revision_note && (
+                                <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-900">
+                                    <strong>Last revision note:</strong> {detail.revision_note}
+                                </div>
+                            )}
+
+                            {detail.versions?.length > 0 && (
+                                <div>
+                                    <p className="font-medium mb-1">History</p>
+                                    <ul className="text-xs space-y-1 text-muted-foreground">
+                                        {detail.versions.map((v) => (
+                                            <li key={v.version_number}>
+                                                Version {v.version_number} — {v.status}
+                                                {v.submitted_at ? ` — ${format(new Date(v.submitted_at), "MMM d")}` : ""}
+                                                {v.revision_note ? ` — "${v.revision_note}"` : ""}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        {detail && ["Submitted", "Under Review", "Resubmitted"].includes(detail.status) && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setRevisionOpen(true)}
+                                    disabled={revisionMutation.isPending}
+                                >
+                                    <RotateCcw className="h-4 w-4 mr-2" />
+                                    Request Revision
+                                </Button>
+                                <Button
+                                    onClick={() => approveMutation.mutate(detail.id)}
+                                    disabled={approveMutation.isPending}
+                                >
+                                    {approveMutation.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                    )}
+                                    Approve
+                                </Button>
+                            </>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Revision Note Dialog */}
+            <Dialog open={revisionOpen} onOpenChange={setRevisionOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Request Revision</DialogTitle>
+                        <DialogDescription>
+                            Provide a clear note explaining what the teacher needs to correct.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <Textarea
+                        placeholder="Please correct the learner's date of birth information on page 2 and resubmit the document."
+                        value={revisionNote}
+                        onChange={(e) => setRevisionNote(e.target.value)}
+                        rows={4}
+                    />
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRevisionOpen(false)}>Cancel</Button>
+                        <Button
+                            disabled={!revisionNote.trim() || revisionNote.trim().length < 5 || revisionMutation.isPending}
+                            onClick={() => revisionMutation.mutate({ id: reviewId, note: revisionNote.trim() })}
+                        >
+                            {revisionMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                            Send Revision Request
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
