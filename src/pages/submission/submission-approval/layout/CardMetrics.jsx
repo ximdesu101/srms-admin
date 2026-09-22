@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-    Card, CardHeader, CardTitle, CardContent,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
 } from "@/components/ui/card";
 import {
     Send, ClockAlert, CircleCheck, FileStack, RotateCcw, Loader2,
@@ -22,24 +25,33 @@ const CardMetrics = () => {
     ];
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            {cards.map((card) => (
-                <Card key={card.title}>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                        <div className={`p-2 rounded-md ${card.bgColor}`}>
-                            <card.icon className={`h-4 w-4 ${card.iconColor}`} />
+        <div className="grid auto-rows-min gap-4 md:grid-cols-2 lg:grid-cols-5">
+            {cards.map((card) => {
+                const Icon = card.icon;
+                return (
+                    <Card key={card.title} className="flex-row gap-0 p-4">
+                        <div className={`flex h-14 w-14 items-center justify-center rounded-full ${card.bgColor}`}>
+                            <Icon className={`h-8 w-8 ${card.iconColor}`} />
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        {isLoading ? (
-                            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                        ) : (
-                            <div className="text-2xl font-bold">{card.value}</div>
-                        )}
-                    </CardContent>
-                </Card>
-            ))}
+                        <div className="flex-1">
+                            <CardHeader className="pb-0">
+                                <CardTitle className="text-sm">
+                                    {card.title}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {isLoading ? (
+                                    <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+                                ) : (
+                                    <h1 className="text-3xl font-bold tracking-tight">
+                                        {card.value}
+                                    </h1>
+                                )}
+                            </CardContent>
+                        </div>
+                    </Card>
+                );
+            })}
         </div>
     );
 };
