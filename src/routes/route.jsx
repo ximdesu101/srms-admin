@@ -18,6 +18,7 @@ import SF9 from "@/pages/forms/school-forms/layouts/sf9/SF9";
 import SF10 from "@/pages/forms/school-forms/layouts/sf10/SF10";
 import DocumentRequest from "@/pages/request/DocumentRequest";
 import SubmissionRequests from "@/pages/submission/submission-request/SubmissionRequest";
+import AddRequestForm from "@/pages/submission/submission-request/layout/AddRequestForm";
 import SubmissionApprovals from "@/pages/submission/submission-approval/SubmissionApproval";
 import AuditLogs from "@/pages/audits/AuditLogs";
 import AuthProtector from "./guard/AuthProtector";
@@ -54,7 +55,22 @@ export const router = createBrowserRouter([
                     { path: "school-forms/sf9",     element: <SF9 />,                   handle: { crumb: () => "SF9 – Progress Report Card" } },
                     { path: "school-forms/sf10",    element: <SF10 />,                  handle: { crumb: () => "SF10 – Academic Record" } },
                     { path: "document-requests",    element: <DocumentRequest />,       handle: { crumb: () => "Document Requests" } },
-                    { path: "submission-requests",  element: <SubmissionRequests />,    handle: { crumb: () => "Submission Requests" } },
+                    {
+                        path: "submission-requests",
+                        element: <SubmissionRequests />,
+                        handle: { crumb: () => "Submission Requests" },
+                    },
+                    {
+                        path: "submission-requests/create",
+                        element: <AddRequestForm />,
+                        handle: {
+                            crumb: () => "Create Request",
+                            parentCrumb: {
+                                label: "Submission Requests",
+                                href: "/submission-requests",
+                            },
+                        },
+                    },
                     { path: "submission-approvals", element: <SubmissionApprovals />,   handle: { crumb: () => "Submission Approvals" } },
                     { path: "audit-logs",           element: <AuditLogs />,             handle: { crumb: () => "Audit Logs" } },
                 ],

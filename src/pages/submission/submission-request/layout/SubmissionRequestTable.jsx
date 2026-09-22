@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Search, Eye, Loader, DatabaseX, SearchAlert, Ban } from "lucide-react";
 import { toast } from "sonner";
@@ -75,6 +76,7 @@ const formatDate = (value) => {
 };
 
 const SubmissionRequestTable = () => {
+    const navigate = useNavigate()
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All");
     const [page, setPage] = useState(1);
@@ -144,12 +146,9 @@ const SubmissionRequestTable = () => {
                             </InputGroupAddon>
                         </InputGroup>
                     </Field>
-                    <AddRequestForm
-                        onCreated={() => {
-                            setPage(1);
-                            setStatus("All");
-                        }}
-                    />
+                    <Button onClick={() => navigate("/submission-requests/create")}>
+                        Create Request
+                    </Button>
                 </div>
             </div>
 

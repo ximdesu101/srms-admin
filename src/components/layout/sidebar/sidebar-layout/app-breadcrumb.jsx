@@ -8,12 +8,19 @@ import {
 function AppBreadcrumbs() {
     const matches = useMatches();
     const location = useLocation();
-    const routeCrumbs = matches
-        .filter((match) => Boolean(match.handle?.crumb))
-        .map((match) => ({
+    const routeCrumbs = matches.flatMap((match) => {
+        if (!match.handle?.crumb) return [];
+
+        const parentCrumb = match.handle.parentCrumb;
+        const crumbs = parentCrumb ? [parentCrumb] : [];
+
+        crumbs.push({
             label: match.handle.crumb(match.params, match.data),
             href: match.pathname,
-        }));
+        });
+
+        return crumbs;
+    });
     const crumbs = location.pathname.startsWith("/school-forms/")
         ? [{ label: "School Forms", href: "/school-forms" }, ...routeCrumbs]
         : routeCrumbs;
