@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Search, Ellipsis } from "lucide-react";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { Search, Ellipsis, Loader, DatabaseX, SearchAlert, Send, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +12,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-
 import {
     Pagination,
     PaginationContent,
@@ -24,41 +25,96 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+    GetSubmissionRequests,
+    UpdateSubmissionRequest,
+    CancelSubmissionRequest,
+} from "@/services/submissionRequestService";
 
-const drafts = [
-    {
-        id: 1,
-        requestID: "SR-2026-001",
-        teacher: "Juan Dela Cruz",
-        RequestedDocument: "School Form 1",
-        RequestedDate: "9/22/2026",
-        DueDate: "9/30/2026",
-    },
-    {
-        id: 2,
-        requestID: "SR-2026-002",
-        teacher: "Maria Santos",
-        RequestedDocument: "School Form 2",
-        RequestedDate: "9/23/2026",
-        DueDate: "10/01/2026",
-    },
-    {
-        id: 3,
-        requestID: "SR-2026-003",
-        teacher: "Pedro Reyes",
-        RequestedDocument: "School Form 3",
-        RequestedDate: "9/24/2026",
-        DueDate: "10/02/2026",
-    },
-];
+const formatDate = (value) => {
+    if (!value) return "—";
+    try {
+        return new Date(value).toLocaleDateString();
+    } catch {
+        return value;
+    }
+};
 
 const Draft = () => {
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [sendTarget, setSendTarget] = useState(null);
+    const [cancelTarget, setCancelTarget] = useState(null);
+    const queryClient = useQueryClient();
 
-    const filteredDrafts = drafts.filter((draft) =>
-        draft.teacher.toLowerCase().includes(search.toLowerCase()) ||
-        draft.requestID.toLowerCase().includes(search.toLowerCase())
-    );
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["submission-drafts", { page, search }],
+        queryFn: () => GetSubmissionRequests({ page, search, status: "Draft" }),
+        placeholderData: keepPreviousData,
+    });
+
+    const drafts = data?.data ?? [];
+    const lastPage = data?.last_page ?? 1;
+    const currentPage = data?.current_page ?? 1;
+
+    const sendMutation = useMutation({
+        mutationFn: (draft) =>
+            UpdateSubmissionRequest(draft.id, {
+                isDraft: false,
+                dueDate: draft.due_date,
+                notes: draft.notes ?? undefined,
+                documentCode: draft.document_code,
+                teacherId: draft.teacher?.id,
+            }),
+        onSuccess: (res) => {
+            toast.success(res?.message || "Submission request sent successfully.");
+            setSendTarget(null);
+            queryClient.invalidateQueries({ queryKey: ["submission-drafts"] });
+            queryClient.invalidateQueries({ queryKey: ["submission-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["submission-request-metrics"] });
+        },
+        onError: (err) => {
+            toast.error(
+                err.response?.data?.message || "Failed to send submission request."
+            );
+        },
+    });
+
+    const cancelMutation = useMutation({
+        mutationFn: CancelSubmissionRequest,
+        onSuccess: (res) => {
+            toast.success(res?.message || "Draft cancelled successfully.");
+            setCancelTarget(null);
+            queryClient.invalidateQueries({ queryKey: ["submission-drafts"] });
+            queryClient.invalidateQueries({ queryKey: ["submission-request-metrics"] });
+        },
+        onError: (err) => {
+            toast.error(
+                err.response?.data?.message || "Failed to cancel draft."
+            );
+        },
+    });
+
+    const handleSearchChange = (value) => {
+        setSearch(value);
+        setPage(1);
+    };
 
     return (
         <div className="grid gap-4">
@@ -68,11 +124,13 @@ const Draft = () => {
                     <InputGroup className="w-80">
                         <InputGroupInput
                             id="search"
-                            placeholder="Search teachers..."
+                            placeholder="Search drafts..."
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => handleSearchChange(e.target.value)}
                         />
-                        <InputGroupAddon><Search /></InputGroupAddon>
+                        <InputGroupAddon>
+                            <Search />
+                        </InputGroupAddon>
                     </InputGroup>
                 </div>
 
@@ -91,18 +149,66 @@ const Draft = () => {
                         </TableHeader>
 
                         <TableBody>
-                            {filteredDrafts.length > 0 ? (
-                                filteredDrafts.map((draft) => (
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="text-center text-muted-foreground"
+                                    >
+                                        <Loader className="mx-auto animate-spin" />
+                                        Loading drafts...
+                                    </TableCell>
+                                </TableRow>
+                            ) : isError ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={6}
+                                        className="text-center text-destructive"
+                                    >
+                                        <DatabaseX className="mx-auto" />
+                                        Failed to load drafts.
+                                    </TableCell>
+                                </TableRow>
+                            ) : drafts.length > 0 ? (
+                                drafts.map((draft) => (
                                     <TableRow key={draft.id}>
-                                        <TableCell>{draft.requestID}</TableCell>
-                                        <TableCell>{draft.teacher}</TableCell>
-                                        <TableCell>{draft.RequestedDocument}</TableCell>
-                                        <TableCell>{draft.RequestedDate}</TableCell>
-                                        <TableCell>{draft.DueDate}</TableCell>
+                                        <TableCell>{draft.request_code}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span>{draft.teacher?.name ?? "—"}</span>
+                                                {draft.teacher?.teacher_id && (
+                                                    <span className="text-muted-foreground text-xs">
+                                                        {draft.teacher.teacher_id}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{draft.document_name}</TableCell>
+                                        <TableCell>{formatDate(draft.request_date)}</TableCell>
+                                        <TableCell>{formatDate(draft.due_date)}</TableCell>
                                         <TableCell className="text-right">
-                                            <Button variant="ghost">
-                                                <Ellipsis />
-                                            </Button>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Ellipsis className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem
+                                                        onClick={() => setSendTarget(draft)}
+                                                    >
+                                                        <Send className="mr-2 h-4 w-4" />
+                                                        Send Request
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        className="text-destructive"
+                                                        onClick={() => setCancelTarget(draft)}
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Cancel Draft
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -112,6 +218,7 @@ const Draft = () => {
                                         colSpan={6}
                                         className="text-center text-muted-foreground"
                                     >
+                                        <SearchAlert className="mx-auto" />
                                         No drafts found.
                                     </TableCell>
                                 </TableRow>
@@ -124,22 +231,51 @@ const Draft = () => {
                     {/* Pagination */}
                     <div className="flex items-center justify-end px-2 py-2">
                         <div className="flex-1 text-sm text-muted-foreground">
-                            Page 1 of 1
+                            Page {currentPage} of {lastPage}
                         </div>
 
                         <div>
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
-                                        <PaginationPrevious className="pointer-events-none opacity-50" />
+                                        <PaginationPrevious
+                                            className={
+                                                currentPage <= 1
+                                                    ? "pointer-events-none opacity-50"
+                                                    : "cursor-pointer"
+                                            }
+                                            onClick={() =>
+                                                currentPage > 1 && setPage(currentPage - 1)
+                                            }
+                                        />
                                     </PaginationItem>
 
-                                    <PaginationItem>
-                                        <PaginationLink isActive>1</PaginationLink>
-                                    </PaginationItem>
+                                    {Array.from({ length: lastPage }, (_, i) => i + 1).map(
+                                        (p) => (
+                                            <PaginationItem key={p}>
+                                                <PaginationLink
+                                                    isActive={p === currentPage}
+                                                    className="cursor-pointer"
+                                                    onClick={() => setPage(p)}
+                                                >
+                                                    {p}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        )
+                                    )}
 
                                     <PaginationItem>
-                                        <PaginationNext className="pointer-events-none opacity-50" />
+                                        <PaginationNext
+                                            className={
+                                                currentPage >= lastPage
+                                                    ? "pointer-events-none opacity-50"
+                                                    : "cursor-pointer"
+                                            }
+                                            onClick={() =>
+                                                currentPage < lastPage &&
+                                                setPage(currentPage + 1)
+                                            }
+                                        />
                                     </PaginationItem>
                                 </PaginationContent>
                             </Pagination>
@@ -147,6 +283,61 @@ const Draft = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Send draft confirmation */}
+            <AlertDialog
+                open={!!sendTarget}
+                onOpenChange={(open) => !open && setSendTarget(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Send submission request?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will send draft{" "}
+                            <strong>{sendTarget?.request_code}</strong> to{" "}
+                            {sendTarget?.teacher?.name ?? "the teacher"} as a submission
+                            request. A due date is required.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Keep as draft</AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={sendMutation.isPending || !sendTarget?.due_date}
+                            onClick={() => sendTarget && sendMutation.mutate(sendTarget)}
+                        >
+                            {sendMutation.isPending ? "Sending…" : "Send request"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Cancel draft confirmation */}
+            <AlertDialog
+                open={!!cancelTarget}
+                onOpenChange={(open) => !open && setCancelTarget(null)}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Cancel draft?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will cancel draft{" "}
+                            <strong>{cancelTarget?.request_code}</strong>. This action
+                            cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Keep draft</AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={cancelMutation.isPending}
+                            onClick={() =>
+                                cancelTarget && cancelMutation.mutate(cancelTarget.id)
+                            }
+                        >
+                            {cancelMutation.isPending ? "Cancelling…" : "Cancel draft"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

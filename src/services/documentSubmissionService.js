@@ -29,6 +29,8 @@ export const RequestRevision = async (id, revisionNote) => {
     return response.data;
 };
 
-export const DownloadDocumentSubmission = (id) => {
-    return `/api/admin/document-submissions/${id}/download`;
+export const DownloadDocumentSubmission = async (id) => {
+    return api.get(`/admin/document-submissions/${id}/download`, {
+        responseType: "blob",
+    });
 };

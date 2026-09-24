@@ -284,7 +284,18 @@ const SubmissionApprovalTable = () => {
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">File</span>
-                                    <p className="font-medium">{detail.original_name}</p>
+                                    {detail.file_url ? (
+                                        <a
+                                            href={detail.file_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="font-medium text-blue-600 underline underline-offset-2 hover:text-blue-800"
+                                        >
+                                            {detail.original_name}
+                                        </a>
+                                    ) : (
+                                        <p className="font-medium">{detail.original_name}</p>
+                                    )}
                                 </div>
                                 <div>
                                     <span className="text-muted-foreground">Revisions</span>
@@ -320,6 +331,19 @@ const SubmissionApprovalTable = () => {
                                         {detail.versions.map((v) => (
                                             <li key={v.version_number}>
                                                 Version {v.version_number} — {v.status}
+                                                {v.file_url && (
+                                                    <>
+                                                        {" — "}
+                                                        <a
+                                                            href={v.file_url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-blue-600 underline underline-offset-2 hover:text-blue-800"
+                                                        >
+                                                            {v.original_name}
+                                                        </a>
+                                                    </>
+                                                )}
                                                 {v.submitted_at
                                                     ? ` — ${format(
                                                         new Date(v.submitted_at),

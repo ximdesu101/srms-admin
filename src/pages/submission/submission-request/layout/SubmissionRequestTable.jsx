@@ -125,7 +125,6 @@ const SubmissionRequestTable = () => {
                 <Tabs value={status} onValueChange={handleStatusChange}>
                     <TabsList>
                         <TabsTrigger value="All">All</TabsTrigger>
-                        <TabsTrigger value="Draft">Draft</TabsTrigger>
                         <TabsTrigger value="Requested">Requested</TabsTrigger>
                         <TabsTrigger value="Acknowledged">Acknowledged</TabsTrigger>
                         <TabsTrigger value="Submitted">Submitted</TabsTrigger>
