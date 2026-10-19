@@ -35,16 +35,7 @@ import {
 
 const navMain = [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    {
-        title: "User Management",
-        url: "#",
-        icon: Users,
-        items: [
-            { title: "Teacher Account", url: "/teacher-accounts" },
-            { title: "Staff Account", url: "/staff" },
-        ],
-
-    },
+    { title: "Teacher Account", url: "/teacher-accounts", icon: Users},
     { title: "Forms", url: "/forms", icon: FileText },
     { title: "Document Requests", url: "/document-requests", icon: FilePlusCorner },
     {

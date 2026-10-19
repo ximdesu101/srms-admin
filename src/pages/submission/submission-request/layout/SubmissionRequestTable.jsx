@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Search, Eye, Loader, DatabaseX, SearchAlert, Ban } from "lucide-react";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -44,6 +43,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { 
+    Search, 
+    Eye, 
+    Loader, 
+    DatabaseX, 
+    SearchAlert, 
+    Ban,
+    Plus
+} from "lucide-react";
 import AddRequestForm from "./AddRequestForm";
 import {
     GetSubmissionRequests,
@@ -149,6 +157,7 @@ const SubmissionRequestTable = () => {
                         </InputGroup>
                     </Field>
                     <Button onClick={() => navigate("/submission-requests/create")}>
+                        <Plus/>
                         Create Request
                     </Button>
                 </div>

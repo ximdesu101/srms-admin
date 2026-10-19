@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, Eye, Loader2, CheckCircle, RotateCcw } from "lucide-react";
+import { Search, Eye, Loader, CheckCircle, RotateCcw, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
@@ -142,10 +142,9 @@ const SubmissionApprovalTable = () => {
                         <TableBody>
                             {isLoading && (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="py-12">
-                                        <div className="flex justify-center">
-                                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                                        </div>
+                                    <TableCell colSpan={8} className="text-center text-muted-foreground">
+                                        <Loader className="mx-auto animate-spin " />
+                                        Loading submission approval...
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -154,7 +153,7 @@ const SubmissionApprovalTable = () => {
                                 <TableRow>
                                     <TableCell
                                         colSpan={8}
-                                        className="py-12 text-center text-destructive"
+                                        className="text-center text-destructive"
                                     >
                                         Failed to load submissions.
                                     </TableCell>
@@ -165,8 +164,9 @@ const SubmissionApprovalTable = () => {
                                 <TableRow>
                                     <TableCell
                                         colSpan={8}
-                                        className="py-12 text-center text-muted-foreground"
+                                        className="text-center text-muted-foreground"
                                     >
+                                        <SearchX className="mx-auto"/>
                                         No pending submissions.
                                     </TableCell>
                                 </TableRow>
@@ -259,7 +259,7 @@ const SubmissionApprovalTable = () => {
 
                     {detailLoading && (
                         <div className="flex justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin" />
+                            <Loader className="animate-spin" />
                         </div>
                     )}
 

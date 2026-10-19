@@ -33,7 +33,7 @@ const CardMetrics = () => {
         },
         {
             id: 2,
-            title: "Requested",
+            title: "Requested Documents",
             value: data?.requested ?? 0,
             icon: Send,
             bgColor: "bg-sky-100",
@@ -41,7 +41,7 @@ const CardMetrics = () => {
         },
         {
             id: 3,
-            title: "Acknowledged",
+            title: "Acknowledged Request",
             value: data?.acknowledged ?? 0,
             icon: Eye,
             bgColor: "bg-yellow-100",
@@ -49,7 +49,7 @@ const CardMetrics = () => {
         },
         {
             id: 4,
-            title: "Submitted",
+            title: "Submitted Request",
             value: data?.submitted ?? 0,
             icon: CircleCheckBig,
             bgColor: "bg-green-100",
@@ -57,7 +57,7 @@ const CardMetrics = () => {
         },
         {
             id: 5,
-            title: "Overdue",
+            title: "Overdue Request",
             value: data?.overdue ?? 0,
             icon: ClockAlert,
             bgColor: "bg-red-100",
@@ -65,7 +65,7 @@ const CardMetrics = () => {
         },
         {
             id: 6,
-            title: "Cancelled",
+            title: "Cancelled Request",
             value: data?.cancelled ?? 0,
             icon: CircleX,
             bgColor: "bg-gray-100",
@@ -74,7 +74,7 @@ const CardMetrics = () => {
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 auto-rows-min gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 auto-rows-min gap-4">
             {cardMetrics.map((item) => {
                 const Icon = item.icon;
                 return (

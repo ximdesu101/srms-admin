@@ -113,7 +113,7 @@ const AddAccountForm = ({ onCreated }) => {
             <DialogTrigger asChild>
                 <Button variant="default">
                     <Plus />
-                    Add Teacher
+                    Add Teacher Account
                 </Button>
             </DialogTrigger>
 

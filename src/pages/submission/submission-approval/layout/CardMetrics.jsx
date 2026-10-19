@@ -30,9 +30,6 @@ const CardMetrics = () => {
                 const Icon = card.icon;
                 return (
                     <Card key={card.title} className="flex-row gap-0 p-4">
-                        <div className={`flex h-14 w-14 items-center justify-center rounded-full ${card.bgColor}`}>
-                            <Icon className={`h-8 w-8 ${card.iconColor}`} />
-                        </div>
                         <div className="flex-1">
                             <CardHeader className="pb-0">
                                 <CardTitle className="text-sm">
