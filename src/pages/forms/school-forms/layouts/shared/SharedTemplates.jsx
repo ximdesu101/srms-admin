@@ -45,6 +45,7 @@ const SharedTemplates = ({
     description,
     templateFileSize,
     lastUpdated = "September 5, 2026",
+    onTemplateChange,
 }) => {
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(true);
@@ -53,9 +54,11 @@ const SharedTemplates = ({
 
     const hasTemplate = Boolean(template);
     const displayFileSize =
-        template?.file_size_formatted || templateFileSize || "—";
-    const displayLastUpdated =
-        template?.last_updated || lastUpdated;
+        template?.file_size_formatted || (hasTemplate ? "—" : "—");
+    // Never fall back to the static SF page date — show blank/message when no template
+    const displayLastUpdated = loading
+        ? "…"
+        : template?.last_updated || "No template uploaded";
     const templateFileName = template?.original_name || null;
 
     const loadTemplate = useCallback(async () => {
@@ -67,14 +70,16 @@ const SharedTemplates = ({
         try {
             const data = await GetTemplate(formCode);
             setTemplate(data);
+            onTemplateChange?.(data);
         } catch (err) {
             console.error("Failed to load template:", err);
             // Keep UI usable; fall back to prop defaults
             setTemplate(null);
+            onTemplateChange?.(null);
         } finally {
             setLoading(false);
         }
-    }, [formCode]);
+    }, [formCode, onTemplateChange]);
 
     useEffect(() => {
         loadTemplate();
@@ -102,6 +107,7 @@ const SharedTemplates = ({
         try {
             const result = await UploadTemplate(formCode, file);
             setTemplate(result.template);
+            onTemplateChange?.(result.template ?? null);
             toast.success(
                 result.message ||
                     (hasTemplate

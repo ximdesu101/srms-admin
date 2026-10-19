@@ -67,3 +67,12 @@ export const GetTemplatePreview = async (formCode) => {
     );
     return response.data;
 };
+
+/**
+ * Summary metrics for all school forms (approved file counts + template info).
+ * Used by the School Forms listing cards.
+ */
+export const GetSchoolFormsSummary = async () => {
+    const response = await api.get("/admin/school-forms/summary");
+    return response.data;
+};

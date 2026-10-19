@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -7,11 +8,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { 
-    CalendarDays, 
-    File, 
-    GitGraph,
-    BadgeCheck
+import {
+    CalendarDays,
+    File,
+    FileStack,
+    BadgeCheck,
+    Loader2,
 } from "lucide-react";
 
 import campus from "@/assets/sf-icons/campus.png";
@@ -25,6 +27,8 @@ import health from "@/assets/sf-icons/health.png";
 import clipboard from "@/assets/sf-icons/clipboard.png";
 import academic from "@/assets/sf-icons/academic.png";
 
+import { GetSchoolFormsSummary } from "@/services/templateService";
+
 const SCHOOL_FORMS = [
     {
         code: "SF1",
@@ -33,9 +37,6 @@ const SCHOOL_FORMS = [
         name: "School Register Report",
         description:
             "A register of all learners enrolled in the school, including personal data and enrollment status. Used as the official enrollment record for the school year.",
-        file: 8,
-        version: "v3",
-        date: "Sept. 5, 2026",
     },
     {
         code: "SF2",
@@ -44,9 +45,6 @@ const SCHOOL_FORMS = [
         name: "Daily Attendance Report",
         description:
             "Monthly summary of daily learner attendance per section.",
-        file: 12,
-        version: "v2",
-        date: "Aug. 28, 2026",
     },
     {
         code: "SF3",
@@ -55,9 +53,6 @@ const SCHOOL_FORMS = [
         name: "Books Issued and Returned",
         description:
             "Tracks textbooks and instructional materials issued to learners.",
-        file: 6,
-        version: "v4",
-        date: "Aug. 21, 2026",
     },
     {
         code: "SF4",
@@ -66,9 +61,6 @@ const SCHOOL_FORMS = [
         name: "Monthly Movement Report",
         description:
             "Records learner enrollment changes throughout the school year.",
-        file: 9,
-        version: "v2",
-        date: "Aug. 15, 2026",
     },
     {
         code: "SF5",
@@ -77,9 +69,6 @@ const SCHOOL_FORMS = [
         name: "Promotion Report",
         description:
             "End-of-year report on learner promotions, retention, and dropouts.",
-        file: 14,
-        version: "v5",
-        date: "July 30, 2026",
     },
     {
         code: "SF6",
@@ -88,9 +77,6 @@ const SCHOOL_FORMS = [
         name: "Summarized Report on Promotion",
         description:
             "Consolidated school-wide summary of promotion outcomes.",
-        file: 7,
-        version: "v3",
-        date: "July 24, 2026",
     },
     {
         code: "SF7",
@@ -99,9 +85,6 @@ const SCHOOL_FORMS = [
         name: "School Personnel List",
         description:
             "Report of all teaching and non-teaching personnel, including position, status, and assignments.",
-        file: 5,
-        version: "v2",
-        date: "July 18, 2026",
     },
     {
         code: "SF8",
@@ -110,9 +93,6 @@ const SCHOOL_FORMS = [
         name: "Learner's Basic Health Profile",
         description:
             "Basic health and nutritional data for each enrolled learner.",
-        file: 11,
-        version: "v4",
-        date: "June 29, 2026",
     },
     {
         code: "SF9",
@@ -121,9 +101,6 @@ const SCHOOL_FORMS = [
         name: "Learner Progress Report Card",
         description:
             "Official report card showing quarterly grades and remarks.",
-        file: 18,
-        version: "v3",
-        date: "June 12, 2026",
     },
     {
         code: "SF10",
@@ -132,15 +109,10 @@ const SCHOOL_FORMS = [
         name: "Permanent Academic Record",
         description:
             "Cumulative academic record retained permanently by the school.",
-        file: 10,
-        version: "v6",
-        date: "May 27, 2026",
     },
 ];
 
-function SchoolFormCard({ form, onOpen }) {
-    const hasMeta = form.file != null || form.version || form.date;
-
+function SchoolFormCard({ form, onOpen, metrics, loading }) {
     const handleKeyDown = (event) => {
         if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
@@ -148,23 +120,30 @@ function SchoolFormCard({ form, onOpen }) {
         }
     };
 
+    const fileCount = metrics?.approved_count ?? 0;
+    const templateCount = metrics?.template_count ?? 0;
+    const dateLabel = metrics?.last_updated || null;
+
     return (
         <Card
             role="button"
             tabIndex={0}
+            className="cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3e963f]"
             onClick={() => onOpen(form.path)}
             onKeyDown={handleKeyDown}
-            className="group cursor-pointer select-none transition-all duration-200 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            <CardHeader className="flex items-start gap-2">
-                <img
-                    src={form.icon}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-12 w-12 object-contain"
-                />
-                <div className="my-auto grid gap-0">
-                    <CardTitle>{form.code}</CardTitle>
+            <CardHeader className="flex flex-row items-start gap-3 space-y-0">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-green-50">
+                    <img
+                        src={form.icon}
+                        alt=""
+                        className="h-7 w-7 object-contain"
+                    />
+                </div>
+                <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base font-semibold">
+                        {form.code}
+                    </CardTitle>
                     <CardDescription>{form.name}</CardDescription>
                 </div>
             </CardHeader>
@@ -174,30 +153,30 @@ function SchoolFormCard({ form, onOpen }) {
                     {form.description}
                 </p>
 
-                {hasMeta && (
-                    <div className="mt-4 flex gap-6 text-xs text-muted-foreground">
-                        {form.file != null && (
-                            <div className="flex gap-1">
-                                <File className="h-4 w-4" />
-                                <span className="my-auto">{form.file} files</span>
-                            </div>
-                        )}
-
-                        {form.version && (
-                            <div className="flex gap-1">
-                                <GitGraph className="h-4 w-4" />
-                                <span className="my-auto">{form.version}</span>
-                            </div>
-                        )}
-
-                        {form.date && (
-                            <div className="flex gap-1">
-                                <CalendarDays className="h-4 w-4" />
-                                <span className="my-auto">{form.date}</span>
-                            </div>
-                        )}
+                <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+                    <div className="flex gap-1">
+                        <File className="h-4 w-4" />
+                        <span className="my-auto">
+                            {loading ? "…" : `${fileCount} file${fileCount !== 1 ? "s" : ""}`}
+                        </span>
                     </div>
-                )}
+
+                    <div className="flex gap-1">
+                        <FileStack className="h-4 w-4" />
+                        <span className="my-auto">
+                            {loading
+                                ? "…"
+                                : `${templateCount} template${templateCount !== 1 ? "s" : ""}`}
+                        </span>
+                    </div>
+
+                    <div className="flex gap-1">
+                        <CalendarDays className="h-4 w-4" />
+                        <span className="my-auto">
+                            {loading ? "…" : dateLabel || "No template"}
+                        </span>
+                    </div>
+                </div>
             </CardContent>
         </Card>
     );
@@ -205,6 +184,29 @@ function SchoolFormCard({ form, onOpen }) {
 
 const SchoolForms = () => {
     const navigate = useNavigate();
+    const [summaryMap, setSummaryMap] = useState({});
+    const [loading, setLoading] = useState(true);
+
+    const loadSummary = useCallback(async () => {
+        setLoading(true);
+        try {
+            const data = await GetSchoolFormsSummary();
+            const map = {};
+            (data?.forms || []).forEach((item) => {
+                map[item.form_code] = item;
+            });
+            setSummaryMap(map);
+        } catch (err) {
+            console.error("Failed to load school forms summary:", err);
+            setSummaryMap({});
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadSummary();
+    }, [loadSummary]);
 
     const openForm = (path) => navigate(`/school-forms/${path}`);
 
@@ -215,8 +217,11 @@ const SchoolForms = () => {
                     <CardTitle className="text-3xl font-semibold">
                         School Forms
                     </CardTitle>
-                    <Badge variant="outline" className="my-auto border-green-200 bg-green-50 text-green-700">
-                        <BadgeCheck/>
+                    <Badge
+                        variant="outline"
+                        className="my-auto border-green-200 bg-green-50 text-green-700"
+                    >
+                        <BadgeCheck />
                         Official
                     </Badge>
                 </div>
@@ -226,9 +231,21 @@ const SchoolForms = () => {
             </CardHeader>
             <div className="grid grid-cols-3 gap-4">
                 {SCHOOL_FORMS.map((form) => (
-                    <SchoolFormCard key={form.code} form={form} onOpen={openForm} />
+                    <SchoolFormCard
+                        key={form.code}
+                        form={form}
+                        onOpen={openForm}
+                        metrics={summaryMap[form.code]}
+                        loading={loading}
+                    />
                 ))}
             </div>
+            {loading && (
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading form metrics…
+                </div>
+            )}
         </div>
     );
 };

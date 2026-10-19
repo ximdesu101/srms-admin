@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/input-group";
 import {
     Search,
+    SearchX,
     Download,
     Loader,
     FileText,
@@ -197,7 +198,7 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                                         className="text-center text-muted-foreground"
                                     >
                                         <Loader className="mx-auto animate-spin" />
-                                        Loading documents...                       
+                                        Loading approved documents...      
                                     </TableCell>
                                 </TableRow>
                             ) : documents.length > 0 ? (
@@ -252,8 +253,9 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                                 <TableRow>
                                     <TableCell
                                         colSpan={8}
-                                        className="h-24 text-center text-muted-foreground"
+                                        className="text-center text-muted-foreground"
                                     >
+                                        <SearchX className="mx-auto"/>
                                         No approved documents found for this form.
                                     </TableCell>
                                 </TableRow>

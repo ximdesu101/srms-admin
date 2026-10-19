@@ -17,7 +17,12 @@ import {
     EmptyMedia,
     EmptyTitle,
 } from "@/components/ui/empty";
-import { Download, Eye, FileText, Loader2 } from "lucide-react";
+import { 
+    Download, 
+    Eye, 
+    FileText, 
+    Loader 
+} from "lucide-react";
 import { toast } from "sonner";
 import { GetTemplatePreview, DownloadTemplate } from "@/services/templateService";
 
@@ -174,7 +179,7 @@ const SharedPreview = ({
 
                     {hasTemplate && previewLoading && (
                         <div className="flex h-48 flex-col items-center justify-center gap-3 text-muted-foreground">
-                            <Loader2 className="h-8 w-8 animate-spin" />
+                            <Loader className="h-8 w-8 animate-spin" />
                             <p className="text-sm">Loading template content…</p>
                         </div>
                     )}
