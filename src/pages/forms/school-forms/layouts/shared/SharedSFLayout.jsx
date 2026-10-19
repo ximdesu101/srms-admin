@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import SharedCardMetrics from "./SharedCardMetrics";
 import SharedTemplates from "./SharedTemplates";
 import SharedTable from "./SharedTable";
@@ -5,6 +6,7 @@ import SharedTable from "./SharedTable";
 /**
  * Shared layout for all School Forms (SF1–SF10).
  * Matches the original SF1 UI structure with unique data per form.
+ * Approved teacher-submitted documents are loaded dynamically for the form category.
  *
  * @param {{
  *   formCode: string,
@@ -14,9 +16,9 @@ import SharedTable from "./SharedTable";
  *   description?: string,
  *   currentVersion?: string,
  *   lastUpdated?: string,
+ *   templateFileSize?: string,
  *   versions?: Array<{ value: string, label: string }>,
- *   metrics: Array<{ key: string, title: string, value: string|number }>,
- *   files: Array<object>
+ *   metrics?: Array<{ key: string, title: string, value: string|number }>,
  * }} props
  */
 const SharedSFLayout = ({
@@ -29,9 +31,21 @@ const SharedSFLayout = ({
     templateFileSize,
     lastUpdated,
     versions,
-    metrics,
-    files,
+    metrics: initialMetrics,
 }) => {
+    const [approvedCount, setApprovedCount] = useState(null);
+
+    const handleCountChange = useCallback((count) => {
+        setApprovedCount(count);
+    }, []);
+
+    const metrics = (initialMetrics || []).map((m) => {
+        if (m.key === "totalFiles" && approvedCount !== null) {
+            return { ...m, value: approvedCount };
+        }
+        return m;
+    });
+
     return (
         <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-4">
@@ -51,7 +65,7 @@ const SharedSFLayout = ({
             <SharedTable
                 formCode={formCode}
                 formName={formName}
-                files={files}
+                onCountChange={handleCountChange}
             />
         </div>
     );

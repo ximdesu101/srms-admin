@@ -1,10 +1,26 @@
 import api from "@/lib/axios";
 
-export const GetDocumentSubmissions = async ({ page = 1, search = "", status = "All" } = {}) => {
+export const GetDocumentSubmissions = async ({ page = 1, search = "", status = "All", documentCode = "" } = {}) => {
+    const params = { page, search, status };
+    if (documentCode) {
+        params.document_code = documentCode;
+    }
     const response = await api.get("/admin/document-submissions", {
-        params: { page, search, status },
+        params,
     });
     return response.data;
+};
+
+/**
+ * Fetch approved document submissions for a specific form category (e.g. SF1).
+ */
+export const GetApprovedDocumentsByForm = async ({ formCode, page = 1, search = "" } = {}) => {
+    return GetDocumentSubmissions({
+        page,
+        search,
+        status: "Approved",
+        documentCode: formCode,
+    });
 };
 
 export const GetDocumentSubmissionMetrics = async () => {
