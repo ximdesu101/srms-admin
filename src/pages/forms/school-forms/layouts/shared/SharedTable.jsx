@@ -22,6 +22,13 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from "@/components/ui/input-group";
+import { Field } from "@/components/ui/field"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger
+} from "@/components/ui/tabs"
 import {
     Search,
     SearchX,
@@ -157,6 +164,27 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
             <div className="grid gap-2">
                 {/* Search Section */}
                 <div className="flex items-center justify-between">
+                    <Field>
+                        <Tabs>
+                            <TabsList>
+                                {/*Tab trigger for approved files*/}
+                                <TabsTrigger
+                                    value="approved"
+                                    className="data-[state=active]:bg-[#3e963f] data-[state=active]:text-white"
+                                >
+                                    Approved File
+                                </TabsTrigger>
+
+                                {/*Tab trigger for templates*/}
+                                <TabsTrigger
+                                    value="templates"
+                                    className="data-[state=active]:bg-[#3e963f] data-[state=active]:text-white"
+                                >
+                                    Templates
+                                </TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </Field>
                     <InputGroup className="w-80">
                         <InputGroupInput
                             id="search"
@@ -168,13 +196,9 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                             <Search />
                         </InputGroupAddon>
                     </InputGroup>
-                    <div className="text-sm text-muted-foreground">
-                        {formName ? `${formName} · ` : ""}
-                        {meta.total} approved document{meta.total !== 1 ? "s" : ""}
-                    </div>
                 </div>
 
-                {/* Table Section */}
+                {/* Table Section for approved files form teacher */}
                 <div className="overflow-hidden rounded-md border">
                     <Table>
                         <TableHeader className="bg-[#4386c2]">
@@ -198,7 +222,7 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                                         className="text-center text-muted-foreground"
                                     >
                                         <Loader className="mx-auto animate-spin" />
-                                        Loading approved documents...      
+                                        Loading approved documents...
                                     </TableCell>
                                 </TableRow>
                             ) : documents.length > 0 ? (
@@ -255,7 +279,7 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                                         colSpan={8}
                                         className="text-center text-muted-foreground"
                                     >
-                                        <SearchX className="mx-auto"/>
+                                        <SearchX className="mx-auto" />
                                         No approved documents found for this form.
                                     </TableCell>
                                 </TableRow>
