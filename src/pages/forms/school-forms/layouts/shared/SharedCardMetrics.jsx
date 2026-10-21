@@ -7,13 +7,13 @@ import {
 
 import {
     Files,
-    GitBranch,
+    FileStack,
     CalendarDays,
 } from "lucide-react";
 
 const DEFAULT_ICONS = {
     totalFiles: Files,
-    version: GitBranch,
+    version: FileStack,
     lastUpdated: CalendarDays,
 };
 

@@ -30,12 +30,30 @@ import {
     TabsTrigger,
 } from "@/components/ui/tabs";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
     Search,
     SearchX,
     Download,
     Loader2,
     FileText,
+    MoreHorizontal,
     RotateCcw,
+    Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -45,6 +63,7 @@ import {
 import {
     GetTemplates,
     ActivateTemplate,
+    DeleteTemplate,
 } from "@/services/templateService";
 
 /**
@@ -54,9 +73,17 @@ import {
  *   formCode: string,
  *   formName?: string,
  *   onCountChange?: (count: number) => void,
+ *   onTemplateCountChange?: (count: number) => void,
+ *   onTemplateActivated?: (template: object|null) => void,
  * }} props
  */
-const SharedTable = ({ formCode, formName, onCountChange }) => {
+const SharedTable = ({
+    formCode,
+    formName,
+    onCountChange,
+    onTemplateCountChange,
+    onTemplateActivated,
+}) => {
     const [activeTab, setActiveTab] = useState("approved");
 
     // --- Approved documents state ---
@@ -77,6 +104,8 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
     const [templates, setTemplates] = useState([]);
     const [templatesLoading, setTemplatesLoading] = useState(false);
     const [activatingId, setActivatingId] = useState(null);
+    const [deletingId, setDeletingId] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     const loadDocuments = useCallback(async () => {
         if (!formCode) {
@@ -116,20 +145,24 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
     const loadTemplates = useCallback(async () => {
         if (!formCode) {
             setTemplates([]);
+            onTemplateCountChange?.(0);
             return;
         }
         setTemplatesLoading(true);
         try {
             const list = await GetTemplates(formCode);
-            setTemplates(Array.isArray(list) ? list : []);
+            const arr = Array.isArray(list) ? list : [];
+            setTemplates(arr);
+            onTemplateCountChange?.(arr.length);
         } catch (err) {
             console.error("Failed to load templates:", err);
             toast.error("Failed to load templates.");
             setTemplates([]);
+            onTemplateCountChange?.(0);
         } finally {
             setTemplatesLoading(false);
         }
-    }, [formCode]);
+    }, [formCode, onTemplateCountChange]);
 
     useEffect(() => {
         if (activeTab === "approved") {
@@ -137,11 +170,10 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
         }
     }, [loadDocuments, activeTab]);
 
+    // Always load templates so the Templates count card stays accurate
     useEffect(() => {
-        if (activeTab === "templates") {
-            loadTemplates();
-        }
-    }, [loadTemplates, activeTab]);
+        loadTemplates();
+    }, [loadTemplates]);
 
     // Debounce search (approved only)
     useEffect(() => {
@@ -185,9 +217,12 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
         }
         setActivatingId(template.id);
         try {
-            await ActivateTemplate(formCode, template.id);
-            toast.success("Template set as current.");
+            const result = await ActivateTemplate(formCode, template.id);
+            toast.success(result?.message || "Template set as current.");
             await loadTemplates();
+            if (result?.template) {
+                onTemplateActivated?.(result.template);
+            }
         } catch (err) {
             console.error("Activate failed:", err);
             toast.error(
@@ -195,6 +230,31 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
             );
         } finally {
             setActivatingId(null);
+        }
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteTarget?.id || deletingId) return;
+        const id = deleteTarget.id;
+        setDeletingId(id);
+        try {
+            await DeleteTemplate(formCode, id);
+            toast.success("Template deleted successfully.");
+            setDeleteTarget(null);
+            await loadTemplates();
+            const list = await GetTemplates(formCode);
+            const current =
+                (Array.isArray(list) ? list : []).find(
+                    (t) => t.status === "current"
+                ) || null;
+            onTemplateActivated?.(current);
+        } catch (err) {
+            console.error("Delete failed:", err);
+            toast.error(
+                err.response?.data?.message || "Failed to delete template."
+            );
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -486,34 +546,53 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                {t.status === "archived" ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        disabled={
-                                                            activatingId ===
-                                                            t.id
-                                                        }
-                                                        onClick={() =>
-                                                            handleActivate(t)
-                                                        }
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            aria-label={`Actions for ${t.original_name || "template"}`}
+                                                            disabled={
+                                                                activatingId === t.id ||
+                                                                deletingId === t.id
+                                                            }
+                                                        >
+                                                            {(activatingId === t.id ||
+                                                                deletingId === t.id) ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent
+                                                        align="end"
+                                                        className="z-50 min-w-[180px]"
                                                     >
-                                                        {activatingId ===
-                                                        t.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                        ) : (
-                                                            <RotateCcw className="h-4 w-4" />
+                                                        {t.status === "archived" && (
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    handleActivate(t)
+                                                                }
+                                                                disabled={activatingId === t.id}
+                                                            >
+                                                                <RotateCcw className="mr-2 h-4 w-4" />
+                                                                Use as Template
+                                                            </DropdownMenuItem>
                                                         )}
-                                                        <span className="ml-1.5">
-                                                            Use This as a
-                                                            Template
-                                                        </span>
-                                                    </Button>
-                                                ) : (
-                                                    <span className="text-xs text-muted-foreground">
-                                                        —
-                                                    </span>
-                                                )}
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onClick={() =>
+                                                                setDeleteTarget(t)
+                                                            }
+                                                            disabled={deletingId === t.id}
+                                                        >
+                                                            <Trash2 className="mr-2 h-4 w-4" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -534,6 +613,46 @@ const SharedTable = ({ formCode, formName, onCountChange }) => {
                     </div>
                 )}
             </div>
+
+            <AlertDialog
+                open={Boolean(deleteTarget)}
+                onOpenChange={(open) => {
+                    if (!open && !deletingId) setDeleteTarget(null);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete template?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {deleteTarget
+                                ? `This will permanently delete "${deleteTarget.original_name || "this template"}". This action cannot be undone.`
+                                : "This action cannot be undone."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={Boolean(deletingId)}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDeleteConfirm();
+                            }}
+                            disabled={Boolean(deletingId)}
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                        >
+                            {deletingId ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Deleting…
+                                </>
+                            ) : (
+                                "Delete"
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

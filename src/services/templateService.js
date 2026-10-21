@@ -60,6 +60,16 @@ export const ActivateTemplate = async (formCode, templateId) => {
 };
 
 /**
+ * Delete a template by id.
+ */
+export const DeleteTemplate = async (formCode, templateId) => {
+    const response = await api.delete(
+        `/admin/school-forms/${encodeURIComponent(formCode)}/templates/${templateId}`
+    );
+    return response.data;
+};
+
+/**
  * Download URL for the current template (requires auth header when fetched as blob).
  */
 export const getTemplateDownloadUrl = (formCode) =>
