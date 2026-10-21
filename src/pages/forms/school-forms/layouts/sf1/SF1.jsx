@@ -10,7 +10,7 @@ const SF1_DATA = {
 
     metrics: [
         { key: "totalFiles", title: "Total Files", value: 12 },
-        { key: "version", title: "Current Version", value: "v3" },
+        { key: "version", title: "Total Templates", value: "1" },
         { key: "lastUpdated", title: "Last Updated", value: "Sep 5, 2026" },
     ],
 

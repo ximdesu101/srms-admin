@@ -2,7 +2,7 @@ import api from "@/lib/axios";
 
 /**
  * Fetch template metadata for a school form (SF1–SF10).
- * Returns null if no template is uploaded yet (404).
+ * Returns the current (active) template, or null if none (404).
  */
 export const GetTemplate = async (formCode) => {
     try {
@@ -19,7 +19,17 @@ export const GetTemplate = async (formCode) => {
 };
 
 /**
- * Upload or replace the official Excel template for a form.
+ * List all templates (current + archived) for a form.
+ */
+export const GetTemplates = async (formCode) => {
+    const response = await api.get(
+        `/admin/school-forms/${encodeURIComponent(formCode)}/templates`
+    );
+    return response.data.templates ?? [];
+};
+
+/**
+ * Upload a new template; it becomes Current and archives the previous current.
  * @param {string} formCode
  * @param {File} file
  */
@@ -35,6 +45,16 @@ export const UploadTemplate = async (formCode, file) => {
                 "Content-Type": "multipart/form-data",
             },
         }
+    );
+    return response.data;
+};
+
+/**
+ * Activate an archived template (makes it Current, archives the previous current).
+ */
+export const ActivateTemplate = async (formCode, templateId) => {
+    const response = await api.post(
+        `/admin/school-forms/${encodeURIComponent(formCode)}/templates/${templateId}/activate`
     );
     return response.data;
 };
@@ -57,7 +77,7 @@ export const DownloadTemplate = async (formCode) => {
 };
 
 /**
- * Fetch styled preview data (values + formatting) for a form's template.
+ * Fetch styled preview data (values + formatting) for a form's current template.
  * Used to render the spreadsheet in its original visual form.
  * @param {string} formCode
  */
