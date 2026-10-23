@@ -18,7 +18,8 @@ import {
     FileText,
     FilePlusCorner,
     Send,
-    FileBox
+    FileBox,
+    Bell,
 } from "lucide-react";
 
 import { NavMain } from "@/components/layout/sidebar/sidebar-layout/nav-main";
@@ -48,6 +49,7 @@ const navMain = [
         ],
     },
     { title: "Drafts", url: "/drafts", icon: FileBox },
+    { title: "Notifications", url: "/notifications", icon: Bell },
     { title: "Reports", url: "#", icon: ChartNoAxesCombined },
     { title: "Audit Logs", url: "/audit-logs", icon: Logs },
 ];
@@ -55,7 +57,7 @@ const navMain = [
 export function AppSidebar({ ...props }) {
     return (
         <Sidebar collapsible="icon" {...props}>
-            <SidebarContent className="mt-15">
+            <SidebarContent>
                 <NavMain items={navMain} />
             </SidebarContent>
             <SidebarRail />

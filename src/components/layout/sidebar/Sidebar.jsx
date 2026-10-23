@@ -5,13 +5,10 @@ import {
     SidebarProvider,
 } from '@/components/ui/sidebar'
 import AppBreadcrumbs from "./sidebar-layout/app-breadcrumb"
-import Header from "./sidebar-layout/app-header"
 
 function Sidebar() {
     return (
         <div className="flex h-svh flex-col overflow-hidden">
-            <Header />
-
             <SidebarProvider className="flex-1 min-h-0">
                 <AppSidebar />
                 <SidebarInset className="overflow-hidden flex flex-col">
