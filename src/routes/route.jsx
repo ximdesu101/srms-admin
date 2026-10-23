@@ -16,6 +16,15 @@ import SF7 from "@/pages/forms/school-forms/layouts/sf7/SF7";
 import SF8 from "@/pages/forms/school-forms/layouts/sf8/SF8";
 import SF9 from "@/pages/forms/school-forms/layouts/sf9/SF9";
 import SF10 from "@/pages/forms/school-forms/layouts/sf10/SF10";
+import AdminDTR from "@/pages/forms/administrative-forms/layout/dtr/dtr";
+import AdminACR from "@/pages/forms/administrative-forms/layout/acr/acr";
+import AdminDPDS from "@/pages/forms/administrative-forms/layout/dpds/dpds";
+import AdminTO from "@/pages/forms/administrative-forms/layout/to/to";
+import AdminLF from "@/pages/forms/administrative-forms/layout/lf/lf";
+import AdminSO from "@/pages/forms/administrative-forms/layout/so/so";
+import AdminSNSED from "@/pages/forms/administrative-forms/layout/snsed/snsed";
+import AdminTransmittal from "@/pages/forms/administrative-forms/layout/transmittal/transmittal";
+
 import DocumentRequest from "@/pages/request/DocumentRequest";
 import SubmissionRequests from "@/pages/submission/submission-request/SubmissionRequest";
 import AddRequestForm from "@/pages/submission/submission-request/layout/AddRequestForm";
@@ -55,6 +64,15 @@ export const router = createBrowserRouter([
                     { path: "school-forms/sf8",     element: <SF8 />,                   handle: { crumb: () => "SF8 – Health Profile" } },
                     { path: "school-forms/sf9",     element: <SF9 />,                   handle: { crumb: () => "SF9 – Progress Report Card" } },
                     { path: "school-forms/sf10",    element: <SF10 />,                  handle: { crumb: () => "SF10 – Academic Record" } },
+                    { path: "admin-forms/dtr", element: <AdminDTR />, handle: { crumb: () => "Biometrics and DTR" } },
+                    { path: "admin-forms/acr", element: <AdminACR />, handle: { crumb: () => "Activity Completion Report" } },
+                    { path: "admin-forms/dpds", element: <AdminDPDS />, handle: { crumb: () => "DPDS" } },
+                    { path: "admin-forms/to", element: <AdminTO />, handle: { crumb: () => "Travel Order" } },
+                    { path: "admin-forms/lf", element: <AdminLF />, handle: { crumb: () => "Leave Form" } },
+                    { path: "admin-forms/so", element: <AdminSO />, handle: { crumb: () => "Special Order" } },
+                    { path: "admin-forms/snsed", element: <AdminSNSED />, handle: { crumb: () => "NSED" } },
+                    { path: "admin-forms/transmittal", element: <AdminTransmittal />, handle: { crumb: () => "Transmittal" } },
+
                     { path: "document-requests",    element: <DocumentRequest />,       handle: { crumb: () => "Document Requests" } },
                     {
                         path: "submission-requests",

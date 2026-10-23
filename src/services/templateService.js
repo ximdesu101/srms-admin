@@ -1,3 +1,4 @@
+
 import api from "@/lib/axios";
 
 /**
@@ -104,5 +105,14 @@ export const GetTemplatePreview = async (formCode) => {
  */
 export const GetSchoolFormsSummary = async () => {
     const response = await api.get("/admin/school-forms/summary");
+    return response.data;
+};
+
+/**
+ * Summary metrics for administrative forms (approved file counts + template info).
+ * Used by the Administrative Forms listing cards.
+ */
+export const GetAdminFormsSummary = async () => {
+    const response = await api.get("/admin/admin-forms/summary");
     return response.data;
 };

@@ -21,9 +21,12 @@ function AppBreadcrumbs() {
 
         return crumbs;
     });
-    const crumbs = location.pathname.startsWith("/school-forms/")
-        ? [{ label: "School Forms", href: "/school-forms" }, ...routeCrumbs]
-        : routeCrumbs;
+    let crumbs = routeCrumbs;
+    if (location.pathname.startsWith("/school-forms/")) {
+        crumbs = [{ label: "School Forms", href: "/forms" }, ...routeCrumbs];
+    } else if (location.pathname.startsWith("/admin-forms/")) {
+        crumbs = [{ label: "Administrative Forms", href: "/forms" }, ...routeCrumbs];
+    }
 
     return (
         <Breadcrumb>
